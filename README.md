@@ -23,7 +23,6 @@
 
 * Docker - For windows go to [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/install/) and download and install the latest version of Docker for Windows. Other platforms go to [Docker Documentation](https://docs.docker.com/)
 * WSL 2 - For better performance, we recommend using WSL 2
-* XServer - In case you are running from Windows, it is needed to run a XServer on Windows so tkinter python libray is able to display the GUI
 
 ### Cloning
 
