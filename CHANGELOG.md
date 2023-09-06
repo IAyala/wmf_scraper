@@ -7,5 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]
 ------------
 
+[0.0.1] - 2023-09-06
+------------
+First version, with the skeleton of the project ready to go
 
-[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.0.0...master
+[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.0.1...master
+[0.0.1]: https://github.com/IAyala/wmf_scraper/compare/v0.0.0...v0.0.1
