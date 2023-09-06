@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]
 ------------
 
+[0.0.3] - 2023-09-06
+------------
+Removed some files that must not exist in the repo
+
 [0.0.2] - 2023-09-06
 ------------
 Minor bugs fixed. Tests added. Coverage 100%. Ready to go
@@ -15,6 +19,7 @@ Minor bugs fixed. Tests added. Coverage 100%. Ready to go
 ------------
 First version, with the skeleton of the project ready to go
 
-[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.0.2...master
+[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.0.3...master
+[0.0.3]: https://github.com/IAyala/wmf_scraper/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/IAyala/wmf_scraper/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/IAyala/wmf_scraper/compare/v0.0.0...v0.0.1
