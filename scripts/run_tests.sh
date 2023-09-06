@@ -15,10 +15,10 @@ run_tests() {
     NUMBER_TESTS=$(pytest --collect-only | grep "<Function\|<Class" -c)
     print_color "Replacing README.md with number of tests" $COLOR_PINK
     sed -i -E "s/tests-([[:digit:]])*/tests-${NUMBER_TESTS}/" README.md
-    print_color "Coverage report (must pass 20%)" $COLOR_PINK
-    coverage report --precision=2 -m --skip-covered --skip-empty --fail-under=20
+    print_color "Coverage report (must pass 80%)" $COLOR_PINK
+    coverage report --precision=2 -m --skip-covered --skip-empty --fail-under=80
     if [ "$?" != "0" ]; then
-        print_color "Coverage Failed!! (must pass 20%)" $COLOR_RED
+        print_color "Coverage Failed!! (must pass 80%)" $COLOR_RED
         exit 1
     fi
     print_color "Generating updated coverage badge" $COLOR_PINK

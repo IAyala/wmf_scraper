@@ -1,6 +1,6 @@
 import os
-from typing import Optional
 
 
-def get_version() -> Optional[str]:
-    return os.getenv("VERSION")
+def get_version() -> str:
+    result = os.getenv("VERSION")
+    return result if result else ""

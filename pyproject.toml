@@ -1,6 +1,6 @@
 [project]
 name = "WMF_Scraper"
-version = "0.0.1"
+version = "0.0.2"
 description = "This is a FASTAPI REST API to obtain and analyse HAB results from WMF"
 requires-python = ">=3.9,<4"
 keywords = ["Ballooning Results", "WatchMeFly"]
@@ -14,7 +14,7 @@ maintainers = [
 
 [tool.poetry]
 name = "WMF_Scraper"
-version = "0.0.1"
+version = "0.0.2"
 description = "This is a FASTAPI REST API to obtain and analyse HAB results from WMF"
 authors = ["Ivan Ayala"]
 packages = [
@@ -26,6 +26,7 @@ exclude = ["src/tests"]
 python = ">=3.9,<4"
 fastapi = "^0.97.0"
 uvicorn = "^0.22.0"
+httpx = "^0.24.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
@@ -63,11 +64,11 @@ disable = [
 ]
 
 [tool.coverage.run]
-omit = ["tests/*"]
+omit = ["src/tests/*"]
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests"
+    "src/tests"
 ]
 
 [tool.ruff]
