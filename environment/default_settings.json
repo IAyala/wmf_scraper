@@ -1,0 +1,20 @@
+{
+  "cSpell.enabled": false,
+  "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 13,
+  "editor.formatOnSave": true,
+  "editor.letterSpacing": 0.4,
+  "editor.smoothScrolling": true,
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "http.proxyStrictSSL": false,
+  "markdown.preview.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace",
+  "python.defaultInterpreterPath": "/home/coder/.pyenv/versions/3.11.5/bin/python",
+  "python.linting.mypyEnabled": true,
+  "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
+  "workbench.iconTheme": "vs-seti",
+  "workbench.startupEditor": "none"
+}

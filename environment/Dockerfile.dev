@@ -1,0 +1,169 @@
+FROM debian:11-slim
+
+# GENERAL PURPOSE ENV VARIABLES
+ENV HOME /home/coder
+ENV DEBIAN_FRONTEND noninteractive
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# VERSIONS OF THE DIFFERENT BUILDING BLOCKS
+ENV PYTHON_VERSION 3.11.5
+ENV POETRY_VERSION 1.6.1
+ENV POETRY_CORE_VERSION 1.7.0
+ENV CODE_SERVER_VERSION 4.16.1
+ENV CREDENTIALS_MANAGER_VERSION 2.3.2
+
+# User
+USER root
+RUN apt-get update -y \
+    && useradd -ms /bin/bash coder \
+    && echo "root:coder" | chpasswd \
+    && echo "coder:coder" | chpasswd \
+    && usermod -aG sudo coder \
+    && sed -i "s|auth       sufficient pam_rootok.so|\
+        auth sufficient pam_rootok.so \n\
+        auth [success=ignore default=1] pam_succeed_if.so user = root \n\
+        auth sufficient pam_succeed_if.so use_uid user ingroup sudo \n\
+        |g" /etc/pam.d/su
+
+# Build essentials
+RUN apt-get update -y \
+    && apt-get install -y \
+        locales \
+        locales-all \
+        llvm \
+        libncursesw5-dev \
+        xz-utils \
+        tk-dev \
+        liblzma-dev \
+        apt-transport-https \
+        ca-certificates \
+        build-essential \ 
+        zlib1g-dev \
+        libncurses5-dev \
+        libgdbm-dev \
+        libnss3-dev \
+        libssl-dev \
+        libsqlite3-dev \
+        libreadline-dev \
+        libffi-dev \
+        curl \
+        libbz2-dev \
+        gnupg2 \
+        ssh \
+        git \
+        git-flow \
+        gnupg \
+        lsb-release
+
+# Code Server
+ADD ./environment/code-server-config.yaml ${HOME}/.config/code-server/config.yaml
+ADD ./environment/default_settings.json ${HOME}/.local/share/code-server/Machine/settings.json
+RUN apt-get --allow-unauthenticated update \
+    && apt-get install -y --no-install-recommends \
+        zip \
+        unzip \
+        vim \
+    && DEBIAN_FRONTEND=noninteractive \
+    && apt-get install -y openjdk-11-jdk \
+    && mkdir -p /opt/code_server \
+    && cd /opt/code_server \
+    && curl -kfSL https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb \
+      -o code-server_${CODE_SERVER_VERSION}_amd64.deb \
+    && dpkg -i code-server_${CODE_SERVER_VERSION}_amd64.deb \
+    && mkdir -p ${HOME}/.local/share/code-server/User/ \
+    && echo '{"http.proxyStrictSSL": false,"svg.preview.autoShow": true,"svg.preview.mode": "svg","svg.preview.background": "white"}' >> ${HOME}/.local/share/code-server/User/settings.json
+
+# File Watchers
+RUN echo "fs.inotify.max_user_instances=524288" >> /etc/sysctl.conf \
+    && echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf \
+    && echo "fs.inotify.max_queued_events=524288" >> /etc/sysctl.conf
+
+# VS Code Plugins
+RUN code-server --install-extension ms-python.python \
+    && code-server --install-extension eamodio.gitlens \
+    && code-server --install-extension mhutchie.git-graph \
+    && code-server --install-extension streetsidesoftware.code-spell-checker \
+    && code-server --install-extension sourcegraph.cody-ai \
+    && code-server --install-extension ms-pyright.pyright \
+    && code-server --install-extension charliermarsh.ruff \
+    && code-server --install-extension technicolor-creamsicle.deepdark-material \
+    && code-server --install-extension cweijan.vscode-mysql-client2 \
+    && code-server --install-extension jock.svg \
+    && code-server --install-extension PKief.material-icon-theme \
+    && code-server --install-extension yzhang.markdown-all-in-one \
+    && code-server --install-extension ms-python.isort \
+    && code-server --install-extension tamasfe.even-better-toml
+
+# Python
+ADD ./pyproject.toml ${HOME}/source/
+ADD *poetry.lock ${HOME}/source/
+RUN mkdir -p ${HOME}/.config \
+    && find ${HOME} -print0 | xargs -0 -n 1 -P 8 chown coder:coder
+USER coder
+RUN cd ${HOME} \
+    && curl https://pyenv.run | bash \
+    && export PATH="${HOME}/.pyenv/bin:${PATH}" \
+    && eval "$(pyenv init -)" \
+    && eval "$(pyenv virtualenv-init -)" \
+    && pyenv install -v ${PYTHON_VERSION} \
+    && pyenv shell ${PYTHON_VERSION} \
+    && pyenv global ${PYTHON_VERSION} \
+    && pip install --upgrade \
+        pip \
+        poetry==${POETRY_VERSION} \
+        poetry-core==${POETRY_CORE_VERSION} \
+    && poetry config virtualenvs.create false
+
+# Install with Poetry
+RUN cd ${HOME}/source \
+    && export PATH="${HOME}/.pyenv/bin:${PATH}" \
+    && eval "$(pyenv init -)" \
+    && eval "$(pyenv virtualenv-init -)" \
+    && poetry install -v --no-root \
+    && cp poetry.lock ${HOME}/
+USER root
+
+# Install Pre-Commit
+ADD ./.pre-commit-config.yaml ${HOME}/pre-commit/
+RUN cd ${HOME}/pre-commit/ \
+    && git config --global core.eol lf \
+    && git config --global core.autocrlf input \
+    && git config --global user.name "Ivan Ayala" \
+    && git config --global user.email "ivan.ayala.alcalde@gmail.com" \
+    && git config --global credential.helper "cache --timeout=86400" \
+    && git config --global init.defaultBranch master \
+    && git config --global --add safe.directory ${HOME}/source \
+    && git config --global pull.rebase false \
+    && export PATH="${HOME}/.pyenv/bin:${HOME}/.pyenv/versions/${PYTHON_VERSION}/bin:${PATH}" \
+    && eval "$(pyenv init -)" \
+    && eval "$(pyenv virtualenv-init -)" \
+    && git init \
+    && pre-commit install --install-hooks
+
+# Git credentials store
+RUN apt install -y wget \
+    && mkdir -p /opt/credentials-manager \
+    && cd /opt/credentials-manager \
+    && wget https://github.com/GitCredentialManager/git-credential-manager/releases/download/v${CREDENTIALS_MANAGER_VERSION}/gcm-linux_amd64.${CREDENTIALS_MANAGER_VERSION}.tar.gz \
+    && tar -xvf gcm-linux_amd64.${CREDENTIALS_MANAGER_VERSION}.tar.gz \
+    && su coder -c "/opt/credentials-manager/git-credential-manager configure" \
+    && su coder -c "git config --global credential.credentialStore plaintext"
+
+# Setting user ownership and switching user
+ADD ./environment/.bashrc ${HOME}/.bashrc
+ADD ./environment/.bashrc /root/.bashrc
+ADD ./environment/init.sh ${HOME}/init.sh
+ADD ./scripts/bash_utils.sh ${HOME}/source/scripts/bash_utils.sh
+ADD ./scripts/bash_functions.sh ${HOME}/source/scripts/bash_functions.sh
+RUN find ${HOME} -print0 | xargs -0 -n 1 -P 8 chown coder:coder || true
+RUN chmod +x ${HOME}/init.sh \
+    && chmod +x /root/.bashrc \
+    && chmod +x ${HOME}/source/scripts/bash_utils.sh \
+    && chmod +x ${HOME}/source/scripts/bash_functions.sh \
+    && sed -i 's/\r$//' ${HOME}/.bashrc \
+    && sed -i 's/\r$//' ${HOME}/init.sh \
+    && chown coder:coder ${HOME}/init.sh
+
+WORKDIR ${HOME}/source
