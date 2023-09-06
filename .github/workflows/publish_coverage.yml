@@ -34,7 +34,7 @@ jobs:
       - name: Build Docker image
         run: environment/build_image.sh
       - name: Run Docker Container
-        run: environment/start_image_github_workflows.sh
+        run: environment/start_image_github.sh
       - name: Exec tests inside Container
         run: |
           docker exec wmf_scraper /bin/bash -c 'source ${HOME}/.bashrc && source scripts/run_tests.sh'
