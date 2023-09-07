@@ -11,15 +11,11 @@ init_git() {
     pushd ${HOME}/source
     if [ -d ${HOME}/source/.git ]; then
         print_color "Git already initialized" $COLOR_GREEN
-        print_color "Installing pre-commit in project" $COLOR_PINK
-        pre-commit install
     else
         print_color "Initializing Git repo" $COLOR_PINK
         git init
         print_color "Adding remote" $COLOR_PINK
 		git remote add origin https://github.com/IAyala/wmf_scraper.git
-        print_color "Installing pre-commit in project" $COLOR_PINK
-        pre-commit install
     fi
     popd
 }
