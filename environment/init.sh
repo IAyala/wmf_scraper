@@ -1,9 +1,5 @@
 #! /bin/bash
 
-source_bashrc() {
-  source ${HOME}/.bashrc
-}
-
 source_bash_utils() {
   if [ -d ${HOME}/source/scripts/ ]
   then
@@ -46,6 +42,9 @@ copy_lock() {
     print_color "Copying poetry.lock file" $COLOR_PINK
     cp ${HOME}/poetry.lock ${HOME}/source
     chown coder:coder ${HOME}/source/poetry.lock
+    print_color "Copying pyproject.toml file" $COLOR_PINK
+    cp ${HOME}/pyproject.toml ${HOME}/source
+    chown coder:coder ${HOME}/source/pyproject.toml
 }
 
 change_local_ownership() {
@@ -65,7 +64,6 @@ change_source_ownership() {
 }
 
 run () {
-    source_bashrc
     source_bash_utils
     init_git
     convert_line_endings

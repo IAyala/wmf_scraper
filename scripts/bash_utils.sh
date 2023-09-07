@@ -54,9 +54,14 @@ source_version() {
 }
 
 source_image_version() {
-    IMAGE_VERSION=$(cat environment/start_image_dev.sh | grep wmf_scraper: | awk -F ':' '{print $2}')
-    print_color "export IMAGE_VERSION=$IMAGE_VERSION" $COLOR_YELLOW
-    export IMAGE_VERSION=$IMAGE_VERSION
+    if [ ! -f pyproject.toml ]; then
+	print_color "pyproject.toml file does not exist. Setting IMAGE_VERSION to 0.0.0" $COLOR_RED
+	export IMAGE_VERSION=0.0.0
+    else
+	IMAGE_VERSION=$(cat pyproject.toml | grep -m 1 'docker_image_version' | awk '{print $3}' | tr '"' ' ' | awk '{print $1}')
+	print_color "export IMAGE_VERSION=$IMAGE_VERSION" $COLOR_YELLOW
+	export IMAGE_VERSION=$IMAGE_VERSION
+    fi
 }
 
 export_env_file() {
