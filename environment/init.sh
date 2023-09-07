@@ -33,8 +33,7 @@ change_permissions() {
 }
 
 convert_line_endings() {
-    local directories_to_convert="${HOME}/source/config"
-    directories_to_convert="${directories_to_convert} ${HOME}/source/scripts"
+    directories_to_convert="${HOME}/source/scripts"
     for directory in ${directories_to_convert}; do
         print_color "Converting file endings for ${directory}" $COLOR_PINK
         pushd ${directory}
