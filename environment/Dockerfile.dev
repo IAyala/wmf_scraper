@@ -55,7 +55,8 @@ RUN apt-get update -y \
         git \
         git-flow \
         gnupg \
-        lsb-release
+        lsb-release \
+        sqlite3
 
 # Code Server
 ADD ./environment/code-server-config.yaml ${HOME}/.config/code-server/config.yaml
