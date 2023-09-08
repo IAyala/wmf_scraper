@@ -1,7 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
+from sqlmodel import SQLModel
 
 from common.environment import get_version
+from database import db_engine
 from routers import version
 
 app = FastAPI(
@@ -10,8 +12,9 @@ app = FastAPI(
     version=get_version(),
 )
 
-
 app.include_router(version.router, prefix="/version")
+
+SQLModel.metadata.create_all(db_engine.engine)
 
 
 if __name__ == "__main__":
