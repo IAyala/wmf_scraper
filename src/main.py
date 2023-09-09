@@ -4,7 +4,7 @@ from sqlmodel import SQLModel
 
 from common.environment import get_version
 from database import db_engine
-from routers import version
+from routers import competition, version
 
 app = FastAPI(
     title="WMF_Scraper",
@@ -12,7 +12,8 @@ app = FastAPI(
     version=get_version(),
 )
 
-app.include_router(version.router, prefix="/version")
+app.include_router(version.router, prefix="/version", tags=["Version"])
+app.include_router(competition.router, prefix="/competition", tags=["Competition"])
 
 SQLModel.metadata.create_all(db_engine.engine)
 
