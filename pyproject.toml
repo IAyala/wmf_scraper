@@ -1,7 +1,7 @@
 [project]
 name = "WMF_Scraper"
 version = "0.0.3"
-docker_image_version = "0.0.3"
+docker_image_version = "0.0.2"
 description = "This is a FASTAPI REST API to obtain and analyse HAB results from WMF"
 requires-python = ">=3.9,<4"
 keywords = ["Ballooning Results", "WatchMeFly"]
