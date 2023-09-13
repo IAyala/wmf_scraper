@@ -1,17 +1,40 @@
+from dataclasses import dataclass
+from typing import Optional
+
 from loguru import logger
 from sqlalchemy_utils import database_exists
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from models.competition import CompetitionModel  # noqa
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-engine = create_engine(sqlite_url, echo=True)
+
+@dataclass
+class DBManager:
+    in_memory: bool = True
+    must_show_debug_messages: bool = False
+    file_name: Optional[str] = None
+
+    def __post_init__(self):
+        self.engine = create_engine(self.url, echo=True)
+
+    @property
+    def url(self) -> str:
+        if self.in_memory:
+            return "sqlite://"
+        return f"sqlite:///{self.file_name}"
+
+    def create_db_if_not_exists(self) -> None:
+        if not database_exists(self.url):
+            SQLModel.metadata.create_all(self.engine)
+            logger.debug("Creating Fresh DB")
+        else:
+            logger.debug(f"DB {self.url} already exists")
+
+    @property
+    def session(self) -> Session:
+        return Session(self.engine)
 
 
-def create_db_if_not_exists() -> None:
-    if not database_exists(sqlite_url):
-        SQLModel.metadata.create_all(engine)
-        logger.debug("creating db")
-    else:
-        logger.debug("db already exists")
+db_engine_manager = DBManager(
+    in_memory=False, must_show_debug_messages=True, file_name="database.db"
+)

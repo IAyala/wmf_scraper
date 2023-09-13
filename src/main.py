@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from common.environment import get_version
-from database.db_engine import create_db_if_not_exists
+from database import create_db_if_not_exists
 from routers import competition, version
 
 app = FastAPI(
@@ -15,6 +15,7 @@ app.include_router(version.router, prefix="/version", tags=["Version"])
 app.include_router(competition.router, prefix="/competition", tags=["Competition"])
 
 create_db_if_not_exists()
+
 
 if __name__ == "__main__":
     uvicorn.run(  # pragma: no cover

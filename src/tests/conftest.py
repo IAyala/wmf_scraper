@@ -11,8 +11,7 @@ from main import app
 
 @pytest.fixture(scope="session", autouse=True)
 def test_client():
-    client = TestClient(app)
-    yield client
+    yield TestClient(app)
 
 
 @pytest.fixture(scope="session", autouse=True)
