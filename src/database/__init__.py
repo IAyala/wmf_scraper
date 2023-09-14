@@ -8,6 +8,10 @@ def create_db_if_not_exists(is_test: bool = False) -> None:
         db_engine_manager.create_db_if_not_exists()
 
 
+def drop_test_db() -> None:
+    db_test_engine_manager.drop_db()
+
+
 def get_db():  # pragma: no cover
     db = _db_session(is_test=False)
     try:

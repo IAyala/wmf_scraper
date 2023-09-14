@@ -32,6 +32,9 @@ class DBManager:
         if self.in_memory or not database_exists(self.url):
             SQLModel.metadata.create_all(self.engine)
 
+    def drop_db(self) -> None:
+        SQLModel.metadata.drop_all(self.engine)
+
     @property
     def session(self) -> Session:
         return Session(self.engine)

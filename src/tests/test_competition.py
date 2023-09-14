@@ -2,18 +2,14 @@ import pytest
 
 from models.competition import CompetitionRequest
 
+user_data_to_add = [CompetitionRequest(url="MyURL", description="_")]
+
 
 @pytest.mark.parametrize(
     "user_data_list, expected_status_code",
     [
-        ([CompetitionRequest(url="MyURL", description="_")], [200]),
-        (
-            [
-                CompetitionRequest(url="RepeatedURL", description="_"),
-                CompetitionRequest(url="RepeatedURL", description="_"),
-            ],
-            [200, 500],
-        ),
+        (user_data_to_add, [200]),
+        (user_data_to_add * 2, [200, 500]),
     ],
 )
 def test_competition_add(test_client, user_data_list, expected_status_code):
@@ -22,19 +18,18 @@ def test_competition_add(test_client, user_data_list, expected_status_code):
         assert response.status_code == expected_status
 
 
+user_data_to_add = [
+    CompetitionRequest(url="DummyURL", description="MyDescription"),
+    CompetitionRequest(url="DummyURL_2", description="DifferentDesc"),
+]
+
+
 @pytest.mark.parametrize(
     "user_data_to_add, desc_to_find, expected_len_result",
     [
-        (
-            [
-                CompetitionRequest(url="DummyURL", description="MyDescription"),
-                CompetitionRequest(url="DummyURL_2", description="DifferentDesc"),
-            ],
-            "Diff",
-            1,
-        ),
-        ([], "MyDesc", 1),
-        ([], "Worlds", 0),
+        (user_data_to_add, "Diff", 1),
+        (user_data_to_add, "e", 2),
+        (user_data_to_add, "Worlds", 0),
     ],
 )
 def test_competition_get_by_desc(
