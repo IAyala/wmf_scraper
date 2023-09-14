@@ -16,7 +16,6 @@ app.include_router(competition.router, prefix="/competition", tags=["Competition
 
 create_db_if_not_exists()
 
-
 if __name__ == "__main__":
     uvicorn.run(  # pragma: no cover
         "main:app",
