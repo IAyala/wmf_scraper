@@ -6,13 +6,16 @@ from _pytest.logging import caplog as _caplog
 from loguru import logger
 from starlette.testclient import TestClient
 
+from database import create_db_if_not_exists, drop_test_db, get_db, get_test_db
 from main import app
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function")
 def test_client():
-    client = TestClient(app)
-    yield client
+    create_db_if_not_exists(is_test=True)
+    app.dependency_overrides[get_db] = get_test_db
+    yield TestClient(app)
+    drop_test_db()
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -8,6 +8,14 @@
   "editor.smoothScrolling": true,
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
+  "files.exclude": {
+    "**/__pycache__": true,
+    ".benchmarks": true,
+    ".mypy_cache": true,
+    ".pytest_cache": true,
+    ".ruff_cache": true,
+    "coverage": true
+  },
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
   "http.proxyStrictSSL": false,

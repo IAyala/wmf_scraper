@@ -1,9 +1,5 @@
 #! /bin/bash
 
-source_bashrc() {
-  source ${HOME}/.bashrc
-}
-
 source_bash_utils() {
   if [ -d ${HOME}/source/scripts/ ]
   then
@@ -15,15 +11,11 @@ init_git() {
     pushd ${HOME}/source
     if [ -d ${HOME}/source/.git ]; then
         print_color "Git already initialized" $COLOR_GREEN
-        print_color "Installing pre-commit in project" $COLOR_PINK
-        pre-commit install
     else
         print_color "Initializing Git repo" $COLOR_PINK
         git init
         print_color "Adding remote" $COLOR_PINK
 		git remote add origin https://github.com/IAyala/wmf_scraper.git
-        print_color "Installing pre-commit in project" $COLOR_PINK
-        pre-commit install
     fi
     popd
 }
@@ -33,8 +25,7 @@ change_permissions() {
 }
 
 convert_line_endings() {
-    local directories_to_convert="${HOME}/source/config"
-    directories_to_convert="${directories_to_convert} ${HOME}/source/scripts"
+    directories_to_convert="${HOME}/source/scripts"
     for directory in ${directories_to_convert}; do
         print_color "Converting file endings for ${directory}" $COLOR_PINK
         pushd ${directory}
@@ -47,6 +38,9 @@ copy_lock() {
     print_color "Copying poetry.lock file" $COLOR_PINK
     cp ${HOME}/poetry.lock ${HOME}/source
     chown coder:coder ${HOME}/source/poetry.lock
+    print_color "Copying pyproject.toml file" $COLOR_PINK
+    cp ${HOME}/pyproject.toml ${HOME}/source
+    chown coder:coder ${HOME}/source/pyproject.toml
 }
 
 change_local_ownership() {
@@ -66,7 +60,6 @@ change_source_ownership() {
 }
 
 run () {
-    source_bashrc
     source_bash_utils
     init_git
     convert_line_endings

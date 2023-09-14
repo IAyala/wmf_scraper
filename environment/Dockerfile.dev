@@ -55,7 +55,8 @@ RUN apt-get update -y \
         git \
         git-flow \
         gnupg \
-        lsb-release
+        lsb-release \
+        sqlite3
 
 # Code Server
 ADD ./environment/code-server-config.yaml ${HOME}/.config/code-server/config.yaml
@@ -94,7 +95,8 @@ RUN code-server --install-extension ms-python.python \
     && code-server --install-extension PKief.material-icon-theme \
     && code-server --install-extension yzhang.markdown-all-in-one \
     && code-server --install-extension ms-python.isort \
-    && code-server --install-extension tamasfe.even-better-toml
+    && code-server --install-extension tamasfe.even-better-toml \
+    && code-server --install-extension alexcvzz.vscode-sqlite
 
 # Python
 ADD ./pyproject.toml ${HOME}/source/
@@ -155,6 +157,7 @@ RUN apt install -y wget \
 ADD ./environment/.bashrc ${HOME}/.bashrc
 ADD ./environment/.bashrc /root/.bashrc
 ADD ./environment/init.sh ${HOME}/init.sh
+ADD ./pyproject.toml ${HOME}/pyproject.toml
 ADD ./scripts/bash_utils.sh ${HOME}/source/scripts/bash_utils.sh
 ADD ./scripts/bash_functions.sh ${HOME}/source/scripts/bash_functions.sh
 RUN find ${HOME} -print0 | xargs -0 -n 1 -P 8 chown coder:coder || true

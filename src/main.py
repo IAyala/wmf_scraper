@@ -2,7 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 
 from common.environment import get_version
-from routers import version
+from database import create_db_if_not_exists
+from routers import competition, version
 
 app = FastAPI(
     title="WMF_Scraper",
@@ -10,9 +11,10 @@ app = FastAPI(
     version=get_version(),
 )
 
+app.include_router(version.router, prefix="/version", tags=["Version"])
+app.include_router(competition.router, prefix="/competition", tags=["Competition"])
 
-app.include_router(version.router, prefix="/version")
-
+create_db_if_not_exists()
 
 if __name__ == "__main__":
     uvicorn.run(  # pragma: no cover
