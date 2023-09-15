@@ -1,0 +1,19 @@
+{
+  "expected_number_tasks": 13,
+  "expected_response": 200,
+  "tasks": [
+    "Judge Declared Goal",
+    "Hesitation Waltz",
+    "Hesitation Waltz",
+    "Fly On",
+    "Pilot Declared Goal",
+    "Minimum Distance Double Drop",
+    "Judge Declared Goal",
+    "Hesitation Waltz",
+    "Judge Declared Goal",
+    "Pilot Declared Goal",
+    "Hesitation Waltz",
+    "Race to an Area",
+    "Judge Declared Goal"
+  ]
+}

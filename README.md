@@ -11,7 +11,7 @@
         <img src="https://github.com/IAyala/wmf_scraper/blob/master/coverage_badge/coverage.svg"/>
     </a>
     <a href="#">
-        <img src="https://img.shields.io/badge/tests-7%20passed%2C%200%20failed-green"/>
+        <img src="https://img.shields.io/badge/tests-10%20passed%2C%200%20failed-green"/>
     </a>
     <a href="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml">
         <img src="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml/badge.svg"/>
