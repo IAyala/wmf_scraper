@@ -41,3 +41,8 @@ async def get_by_description(
             select(CompetitionModel).where(column("description").contains(description))
         )
     ]
+
+
+@router.get("/all", summary="Gets the competition details by description")
+async def get_all_competitions(session: Session = Depends(get_db)) -> List[Dict]:
+    return [x.dict() for x in session.exec(select(CompetitionModel))]

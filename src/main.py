@@ -3,7 +3,7 @@ from fastapi import FastAPI
 
 from common.environment import get_version
 from database import create_db_if_not_exists
-from routers import competition, version
+from routers import competition, task, version
 
 app = FastAPI(
     title="WMF_Scraper",
@@ -13,6 +13,7 @@ app = FastAPI(
 
 app.include_router(version.router, prefix="/version", tags=["Version"])
 app.include_router(competition.router, prefix="/competition", tags=["Competition"])
+app.include_router(task.router, prefix="/task", tags=["Task"])
 
 create_db_if_not_exists()
 

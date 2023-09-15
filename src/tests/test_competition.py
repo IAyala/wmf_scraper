@@ -43,3 +43,16 @@ def test_competition_get_by_desc(
     )
     assert response.status_code == 200
     assert len(response.json()) == expected_len_result
+
+
+@pytest.mark.parametrize(
+    "user_data_to_add, expected_len_result",
+    [(user_data_to_add, 2)],
+)
+def test_competition_get_all(test_client, user_data_to_add, expected_len_result):
+    for user_data in user_data_to_add:
+        response = test_client.post("/competition/add", json=user_data.dict())
+        assert response.status_code == 200
+    response = test_client.get("/competition/all")
+    assert response.status_code == 200
+    assert len(response.json()) == expected_len_result

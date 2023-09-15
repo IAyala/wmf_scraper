@@ -10,6 +10,11 @@ from database import create_db_if_not_exists, drop_test_db, get_db, get_test_db
 from main import app
 
 
+def resolve_path(path: str) -> Path:
+    dir_path = Path(__file__).resolve().parent
+    return dir_path.joinpath(path)
+
+
 @pytest.fixture(scope="function")
 def test_client():
     create_db_if_not_exists(is_test=True)
