@@ -1,13 +1,44 @@
+import json
 import logging
 from pathlib import Path
+from typing import Any, Dict, List
 
 import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger
+from lxml import html
 from starlette.testclient import TestClient
 
 from database import create_db_if_not_exists, drop_test_db, get_db, get_test_db
 from main import app
+from models.competition import CompetitionRequest
+
+FILE_FOLDER = "html_examples"
+EXPECTED_FOLDER = "html_examples_expected"
+
+
+def get_test_files(tests_to_run: str) -> List[Path]:
+    return list(resolve_path(f"data/{FILE_FOLDER}").glob(tests_to_run))
+
+
+ONE_COMPETITION_DUMMY_DATA = [CompetitionRequest(url="MyURL", description="_")]
+
+
+def get_xml_tree_from_file(path: Path):
+    with open(path, "r") as f:
+        return html.fromstring(f.read())
+
+
+def get_expected_results_from_file(path: Path) -> Dict[str, Any]:
+    index_to_change = path.parts.index(FILE_FOLDER)
+    path_to_read = (
+        Path(*path.parts[0:index_to_change])
+        .joinpath(EXPECTED_FOLDER)
+        .joinpath(*path.parts[index_to_change + 1 :])
+        .with_suffix(".json")
+    )
+    with open(path_to_read, "r") as f:
+        return json.load(f)
 
 
 def resolve_path(path: str) -> Path:

@@ -1,5 +1,5 @@
 import re
-from parser.parse_utilities import html_from_url
+from parser.parse_utilities import URL_PREFIX, html_from_url
 from typing import List, Tuple
 
 from models.competition import CompetitionModel
@@ -28,7 +28,7 @@ def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
         task_status = first_text(task_info.findall(r".//div[@class='ms-auto']/h7"))
         result.append(
             TaskModel(
-                url=task_url,
+                url=f"{URL_PREFIX}/{task_url}",
                 name=task_name,
                 status=task_status,
                 task_id=task_id,
