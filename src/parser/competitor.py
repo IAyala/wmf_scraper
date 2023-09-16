@@ -2,10 +2,12 @@ from parser.parse_utilities import html_from_url
 from typing import List
 
 from models.competition import CompetitionModel
-from models.competitor import CompetitorModel
+from models.competitor import CompetitorSimpleModel
 
 
-def get_competitor_data(the_competition: CompetitionModel) -> List[CompetitorModel]:
+def get_competitor_data(
+    the_competition: CompetitionModel,
+) -> List[CompetitorSimpleModel]:
     result = []
     page = html_from_url(the_competition.url)
     for competitors_info in page.findall(".//tbody"):
@@ -15,10 +17,10 @@ def get_competitor_data(the_competition: CompetitionModel) -> List[CompetitorMod
             competitor_banner, competitor_name = info[1].split(" - ")
             competitor_country = info[2]
             result.append(
-                CompetitorModel(
+                CompetitorSimpleModel(
                     name=competitor_name,
                     country=competitor_country,
-                    banner_number=competitor_banner,
+                    banner=competitor_banner,
                     competition_id=the_competition.competition_id,
                 )
             )

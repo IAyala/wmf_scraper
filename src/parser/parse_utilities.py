@@ -14,5 +14,5 @@ def _html_from_url(url: str) -> html.HtmlElement:  # pragma: no cover
 def html_from_url(url: str) -> html.HtmlElement:
     try:
         return _html_from_url(url)
-    except (HTTPError, URLError) as ex:
-        raise ValueError(f"Not possible to open URL: {url}") from ex
+    except (HTTPError, URLError) as ex:  # pragma: no cover
+        raise ValueError(f"Not possible to open URL: {url}") from ex  # pragma: no cover
