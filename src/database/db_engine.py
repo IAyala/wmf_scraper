@@ -6,6 +6,8 @@ from sqlalchemy_utils import database_exists
 from sqlmodel import Session, SQLModel, create_engine
 
 from models.competition import CompetitionModel  # noqa
+from models.competitor import CompetitorModel  # noqa
+from models.task import TaskModel  # noqa
 
 
 @dataclass

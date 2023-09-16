@@ -1,15 +1,14 @@
 import pytest
 
 from models.competition import CompetitionRequest
-
-user_data_to_add = [CompetitionRequest(url="MyURL", description="_")]
+from tests.conftest import ONE_COMPETITION_DUMMY_DATA
 
 
 @pytest.mark.parametrize(
     "user_data_list, expected_status_code",
     [
-        (user_data_to_add, [200]),
-        (user_data_to_add * 2, [200, 500]),
+        (ONE_COMPETITION_DUMMY_DATA, [200]),
+        (ONE_COMPETITION_DUMMY_DATA * 2, [200, 500]),
     ],
 )
 def test_competition_add(test_client, user_data_list, expected_status_code):

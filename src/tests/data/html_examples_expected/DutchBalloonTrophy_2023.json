@@ -1,4 +1,5 @@
 {
+  "expected_number_competitors": 25,
   "expected_number_tasks": 13,
   "expected_response": 200,
   "tasks": [

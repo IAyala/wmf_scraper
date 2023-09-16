@@ -1,4 +1,4 @@
-from parser.task import get_tasks_data
+from parser.competitor import get_competitor_data
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,7 +11,8 @@ router = APIRouter()
 
 
 @router.get(
-    "/get_tasks_for_competition", summary="Add a new competition to the scraper"
+    "/get_competitors_in_competition",
+    summary="Add a new list of competitors taking part in a competition",
 )
 async def add_competition(
     competition_id: int, session: Session = Depends(get_db)
@@ -23,7 +24,7 @@ async def add_competition(
             )
         ).all()
         if result:
-            return [x.dict() for x in get_tasks_data(result[0])]
+            return [x.dict() for x in get_competitor_data(result[0])]
         return []
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"{ex}") from ex
