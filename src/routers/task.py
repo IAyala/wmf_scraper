@@ -1,4 +1,4 @@
-from parser.parse_utilities import get_tasks_data
+from parser.task import get_tasks_data
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException

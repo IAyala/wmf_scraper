@@ -43,7 +43,7 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
         response = test_client.post("/competition/add", json=user_data.dict())
         assert response.status_code == 200
     mocker.patch(
-        "parser.parse_utilities.html_from_url",
+        "parser.task.html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.get(
