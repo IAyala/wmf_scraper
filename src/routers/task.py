@@ -1,11 +1,12 @@
 from parser.task import get_tasks_data
-from typing import Dict, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from database import get_db
 from models.competition import CompetitionModel
+from models.task import TaskModel
 
 router = APIRouter()
 
@@ -13,9 +14,9 @@ router = APIRouter()
 @router.get(
     "/get_tasks_for_competition", summary="Add a new competition to the scraper"
 )
-async def add_competition(
+async def get_tasks_for_competition(
     competition_id: int, session: Session = Depends(get_db)
-) -> List[Dict]:
+) -> List[TaskModel]:
     try:
         result = session.exec(
             select(CompetitionModel).where(
@@ -23,7 +24,7 @@ async def add_competition(
             )
         ).all()
         if result:
-            return [x.dict() for x in get_tasks_data(result[0])]
+            return get_tasks_data(result[0])
         return []
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"{ex}") from ex
