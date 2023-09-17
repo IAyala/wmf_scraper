@@ -1,12 +1,13 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger
 from lxml import html
+from pydantic import BaseModel
 from starlette.testclient import TestClient
 
 from database import create_db_if_not_exists, drop_test_db, get_db, get_test_db
@@ -29,7 +30,14 @@ def get_xml_tree_from_file(path: Path):
         return html.fromstring(f.read())
 
 
-def get_expected_results_from_file(path: Path) -> Dict[str, Any]:
+class ExpectedResults(BaseModel):
+    expected_number_competitors: int
+    expected_number_tasks: int
+    expected_response: int
+    tasks: List[str]
+
+
+def get_expected_results_from_file(path: Path) -> ExpectedResults:
     index_to_change = path.parts.index(FILE_FOLDER)
     path_to_read = (
         Path(*path.parts[0:index_to_change])
@@ -38,7 +46,7 @@ def get_expected_results_from_file(path: Path) -> Dict[str, Any]:
         .with_suffix(".json")
     )
     with open(path_to_read, "r") as f:
-        return json.load(f)
+        return ExpectedResults(**json.load(f))
 
 
 def resolve_path(path: str) -> Path:
@@ -60,7 +68,6 @@ def set_loguru_sink():
     log_file = dir_path.joinpath("tests.log")
     if log_file.exists():
         log_file.unlink()
-
     logger.add(log_file)
 
 

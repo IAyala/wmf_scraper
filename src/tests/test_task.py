@@ -28,12 +28,12 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
         "/task/get_tasks_for_competition", params={"competition_id": 1}
     )
     expected = get_expected_results_from_file(html_file)
-    assert response.status_code == expected["expected_response"]
+    assert response.status_code == expected.expected_response
     if response.status_code == 200:
-        assert len(response.json()) == expected["expected_number_tasks"]
+        assert len(response.json()) == expected.expected_number_tasks
         assert [
             x["name"] for x in sorted(response.json(), key=lambda x: x["task_id"])
-        ] == expected["tasks"]
+        ] == expected.tasks
 
 
 def test_tasks_empty_competitions(test_client):

@@ -29,12 +29,9 @@ def test_competitor_parser(
         "/competitor/get_competitors_in_competition", params={"competition_id": 1}
     )
     expected = get_expected_results_from_file(html_file)
-    assert response.status_code == expected["expected_response"]
+    assert response.status_code == expected.expected_response
     if response.status_code == 200:
-        assert len(response.json()) == expected["expected_number_competitors"]
-        # assert [
-        #     x["name"] for x in sorted(response.json(), key=lambda x: x["task_id"])
-        # ] == expected["tasks"]
+        assert len(response.json()) == expected.expected_number_competitors
 
 
 def test_competitor_empty_competitions(test_client):
