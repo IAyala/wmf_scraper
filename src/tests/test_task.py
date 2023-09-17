@@ -32,7 +32,7 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
     if response.status_code == 200:
         assert len(response.json()) == expected.expected_number_tasks
         assert [
-            x["name"] for x in sorted(response.json(), key=lambda x: x["task_id"])
+            x["name"] for x in sorted(response.json(), key=lambda x: x["task_order"])
         ] == expected.tasks
 
 
