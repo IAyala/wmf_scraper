@@ -15,7 +15,7 @@ router = APIRouter()
     "/get_competitors_in_competition",
     summary="Add a new list of competitors taking part in a competition",
 )
-async def add_competition(
+async def get_competitors(
     competition_id: int, session: Session = Depends(get_db)
 ) -> List[CompetitorSimpleModel]:
     try:
