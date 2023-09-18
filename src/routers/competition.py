@@ -36,6 +36,16 @@ async def add_competition(
         raise HTTPException(status_code=400, detail=f"{ex}") from ex
 
 
+@router.post("/add_many_competitions", summary="Add a new competition to the scraper")
+async def add_many_competitions(
+    req: List[CompetitionRequest], session: Session = Depends(get_db)
+) -> List[CompetitionModel]:
+    result = []
+    for competition in req:
+        result.append(await add_competition(competition, session=session))
+    return result
+
+
 @router.get(
     "/get_by_description", summary="Gets the competition details by description"
 )
@@ -80,3 +90,13 @@ async def load_competition(
         "tasks_added": len(tasks_added),
         "task_results_added": [len(x) for x in task_results_added],
     }
+
+
+@router.post("/load_many_competitions", summary="Load Competition Results")
+async def load_many_competitions(
+    req: List[LoadCompetitionRequest], session: Session = Depends(get_db)
+) -> List[dict]:
+    result = []
+    for elem in req:
+        result.append(await load_competition(elem, session=session))
+    return result
