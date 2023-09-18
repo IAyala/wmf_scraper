@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.0.5] - 2023-09-16
 ------------
+Endpoints created to retrieve:
+- Tasks from a competition
+- Competitors from a competition
+
+Added some tests that parse a static HTML example files and assess results are as expected
 
 [0.0.4] - 2023-09-14
 ------------

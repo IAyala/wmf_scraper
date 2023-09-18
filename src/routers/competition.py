@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, column, func, select
@@ -17,14 +17,14 @@ async def how_many_competitions(session: Session) -> int:
 @router.post("/add", summary="Add a new competition to the scraper")
 async def add_competition(
     req: CompetitionRequest, session: Session = Depends(get_db)
-) -> Dict:
+) -> CompetitionModel:
     num_prev_competitions = await how_many_competitions(session)
     try:
         to_add = CompetitionModel(**req.dict())
         to_add.competition_id = num_prev_competitions + 1
         session.add(to_add)
         session.commit()
-        return dict(req.dict(), **{"competition_id": num_prev_competitions + 1})
+        return CompetitionModel(**req.dict(), competition_id=num_prev_competitions + 1)
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"{ex}") from ex
 
@@ -34,15 +34,14 @@ async def add_competition(
 )
 async def get_by_description(
     description: str, session: Session = Depends(get_db)
-) -> List[Dict]:
-    return [
-        x.dict()
-        for x in session.exec(
-            select(CompetitionModel).where(column("description").contains(description))
-        )
-    ]
+) -> List[CompetitionModel]:
+    return session.exec(
+        select(CompetitionModel).where(column("description").contains(description))
+    ).all()
 
 
 @router.get("/all", summary="Gets the competition details by description")
-async def get_all_competitions(session: Session = Depends(get_db)) -> List[Dict]:
-    return [x.dict() for x in session.exec(select(CompetitionModel))]
+async def get_all_competitions(
+    session: Session = Depends(get_db),
+) -> List[CompetitionModel]:
+    return session.exec(select(CompetitionModel)).all()

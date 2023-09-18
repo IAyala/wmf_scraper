@@ -6,7 +6,7 @@ from models.competition import CompetitionModel
 from models.task import TaskModel
 
 
-def task_id_and_name_from_string(the_data: str) -> Tuple[int, str]:
+def task_order_and_name_from_string(the_data: str) -> Tuple[int, str]:
     """Get the Task data from the title"""
     result = re.search(r"Task (\d*) - (.*)", the_data)
     if result:
@@ -19,20 +19,25 @@ def first_text(elements: List) -> str:
 
 
 def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
+    is_last: bool = False
     result = []
     page = html_from_url(the_competition.url)
     for task_info in page.findall(".//a[@class='text-black']"):
+        if task_info.getnext() is not None and task_info.getnext().tag == "h5":
+            is_last = True
         task_url = task_info.get("href")
         data_to_process = first_text(task_info.findall(".//h7[@class='mb-0']"))
-        task_id, task_name = task_id_and_name_from_string(data_to_process)
+        task_order, task_name = task_order_and_name_from_string(data_to_process)
         task_status = first_text(task_info.findall(r".//div[@class='ms-auto']/h7"))
         result.append(
             TaskModel(
                 url=f"{URL_PREFIX}/{task_url}",
                 name=task_name,
                 status=task_status,
-                task_id=task_id,
+                task_order=task_order,
                 competition_id=the_competition.competition_id,
             )
         )
+        if is_last:
+            return result
     return result

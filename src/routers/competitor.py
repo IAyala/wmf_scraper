@@ -1,11 +1,12 @@
 from parser.competitor import get_competitor_data
-from typing import Dict, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from database import get_db
 from models.competition import CompetitionModel
+from models.competitor import CompetitorSimpleModel
 
 router = APIRouter()
 
@@ -14,9 +15,9 @@ router = APIRouter()
     "/get_competitors_in_competition",
     summary="Add a new list of competitors taking part in a competition",
 )
-async def add_competition(
+async def get_competitors(
     competition_id: int, session: Session = Depends(get_db)
-) -> List[Dict]:
+) -> List[CompetitorSimpleModel]:
     try:
         result = session.exec(
             select(CompetitionModel).where(
@@ -24,7 +25,7 @@ async def add_competition(
             )
         ).all()
         if result:
-            return [x.dict() for x in get_competitor_data(result[0])]
+            return get_competitor_data(result[0])
         return []
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"{ex}") from ex

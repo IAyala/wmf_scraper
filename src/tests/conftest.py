@@ -1,12 +1,13 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger
 from lxml import html
+from pydantic import BaseModel
 from starlette.testclient import TestClient
 
 from database import create_db_if_not_exists, drop_test_db, get_db, get_test_db
@@ -17,8 +18,8 @@ FILE_FOLDER = "html_examples"
 EXPECTED_FOLDER = "html_examples_expected"
 
 
-def get_test_files(tests_to_run: str) -> List[Path]:
-    return list(resolve_path(f"data/{FILE_FOLDER}").glob(tests_to_run))
+def get_test_files(data_tests_folder: str, tests_to_run: str) -> List[Path]:
+    return list(resolve_path(f"{data_tests_folder}/{FILE_FOLDER}").glob(tests_to_run))
 
 
 ONE_COMPETITION_DUMMY_DATA = [CompetitionRequest(url="MyURL", description="_")]
@@ -29,16 +30,35 @@ def get_xml_tree_from_file(path: Path):
         return html.fromstring(f.read())
 
 
-def get_expected_results_from_file(path: Path) -> Dict[str, Any]:
+def path_to_read_expected(path: Path) -> Path:
     index_to_change = path.parts.index(FILE_FOLDER)
-    path_to_read = (
+    return (
         Path(*path.parts[0:index_to_change])
         .joinpath(EXPECTED_FOLDER)
         .joinpath(*path.parts[index_to_change + 1 :])
         .with_suffix(".json")
     )
-    with open(path_to_read, "r") as f:
-        return json.load(f)
+
+
+class ExpectedCompetitorTask(BaseModel):
+    expected_number_competitors: int
+    expected_number_tasks: int
+    expected_response: int
+    tasks: List[str]
+
+
+class ExpectedTaskResults(BaseModel):
+    expected_number_task_results: int
+
+
+def get_expected_competitor_and_task(path: Path) -> ExpectedCompetitorTask:
+    with open(path_to_read_expected(path), "r") as f:
+        return ExpectedCompetitorTask(**json.load(f))
+
+
+def get_expected_task_results(path: Path) -> ExpectedTaskResults:
+    with open(path_to_read_expected(path), "r") as f:
+        return ExpectedTaskResults(**json.load(f))
 
 
 def resolve_path(path: str) -> Path:
@@ -60,7 +80,6 @@ def set_loguru_sink():
     log_file = dir_path.joinpath("tests.log")
     if log_file.exists():
         log_file.unlink()
-
     logger.add(log_file)
 
 

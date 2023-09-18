@@ -8,6 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from models.competition import CompetitionModel  # noqa
 from models.competitor import CompetitorModel  # noqa
 from models.task import TaskModel  # noqa
+from models.task_result import TaskResultModel  # noqa
 
 
 @dataclass
