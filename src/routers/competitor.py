@@ -28,4 +28,4 @@ async def get_competitors(
             return get_competitor_data(result[0])
         return []
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=f"{ex}") from ex
+        raise HTTPException(status_code=400, detail=f"{ex}") from ex

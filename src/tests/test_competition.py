@@ -8,7 +8,7 @@ from tests.conftest import ONE_COMPETITION_DUMMY_DATA
     "user_data_list, expected_status_code",
     [
         (ONE_COMPETITION_DUMMY_DATA, [200]),
-        (ONE_COMPETITION_DUMMY_DATA * 2, [200, 500]),
+        (ONE_COMPETITION_DUMMY_DATA * 2, [200, 400]),
     ],
 )
 def test_competition_add(test_client, user_data_list, expected_status_code):

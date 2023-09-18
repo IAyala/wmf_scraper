@@ -1,6 +1,6 @@
 {
   "expected_number_competitors": -1,
   "expected_number_tasks": -1,
-  "expected_response": 500,
+  "expected_response": 400,
   "tasks": []
 }
