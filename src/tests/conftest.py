@@ -18,8 +18,8 @@ FILE_FOLDER = "html_examples"
 EXPECTED_FOLDER = "html_examples_expected"
 
 
-def get_test_files(tests_to_run: str) -> List[Path]:
-    return list(resolve_path(f"data/{FILE_FOLDER}").glob(tests_to_run))
+def get_test_files(data_tests_folder: str, tests_to_run: str) -> List[Path]:
+    return list(resolve_path(f"{data_tests_folder}/{FILE_FOLDER}").glob(tests_to_run))
 
 
 ONE_COMPETITION_DUMMY_DATA = [CompetitionRequest(url="MyURL", description="_")]
@@ -30,23 +30,35 @@ def get_xml_tree_from_file(path: Path):
         return html.fromstring(f.read())
 
 
-class ExpectedResults(BaseModel):
+def path_to_read_expected(path: Path) -> Path:
+    index_to_change = path.parts.index(FILE_FOLDER)
+    return (
+        Path(*path.parts[0:index_to_change])
+        .joinpath(EXPECTED_FOLDER)
+        .joinpath(*path.parts[index_to_change + 1 :])
+        .with_suffix(".json")
+    )
+
+
+class ExpectedCompetitorTask(BaseModel):
     expected_number_competitors: int
     expected_number_tasks: int
     expected_response: int
     tasks: List[str]
 
 
-def get_expected_results_from_file(path: Path) -> ExpectedResults:
-    index_to_change = path.parts.index(FILE_FOLDER)
-    path_to_read = (
-        Path(*path.parts[0:index_to_change])
-        .joinpath(EXPECTED_FOLDER)
-        .joinpath(*path.parts[index_to_change + 1 :])
-        .with_suffix(".json")
-    )
-    with open(path_to_read, "r") as f:
-        return ExpectedResults(**json.load(f))
+class ExpectedTaskResults(BaseModel):
+    expected_number_task_results: int
+
+
+def get_expected_competitor_and_task(path: Path) -> ExpectedCompetitorTask:
+    with open(path_to_read_expected(path), "r") as f:
+        return ExpectedCompetitorTask(**json.load(f))
+
+
+def get_expected_task_results(path: Path) -> ExpectedTaskResults:
+    with open(path_to_read_expected(path), "r") as f:
+        return ExpectedTaskResults(**json.load(f))
 
 
 def resolve_path(path: str) -> Path:

@@ -1,44 +1,31 @@
-# import pytest
-# from pytest_mock import MockerFixture
+from parser.task_results import get_task_results
 
-# from tests.conftest import (
-#     ONE_COMPETITION_DUMMY_DATA,
-#     get_expected_results_from_file,
-#     get_test_files,
-#     get_xml_tree_from_file,
-# )
+import pytest
+from pytest_mock import MockerFixture
 
-# TESTS_TO_RUN: str = "**/*.html"
+from models.task import TaskModel
+from tests.conftest import (
+    get_expected_task_results,
+    get_test_files,
+    get_xml_tree_from_file,
+)
 
-
-# @pytest.mark.parametrize(
-#     "user_data_to_add, html_file",
-#     [(ONE_COMPETITION_DUMMY_DATA, x) for x in get_test_files(TESTS_TO_RUN)],
-# )
-# def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFixture):
-#     mocker.patch(
-#         "parser.parse_utilities._html_from_url",
-#         return_value=get_xml_tree_from_file(html_file),
-#     )
-
-#     for user_data in user_data_to_add:
-#         response = test_client.post("/competition/add", json=user_data.dict())
-#         assert response.status_code == 200
-#     response = test_client.get(
-#         "/task_result/get_tasks_results_data", params={"competition_id": 1}
-#     )
-#     expected = get_expected_results_from_file(html_file)
-#     assert response.status_code == expected.expected_response
-#     if response.status_code == 200:
-#         assert len(response.json()) == expected.expected_number_tasks
-#         assert [
-#             x["name"] for x in sorted(response.json(), key=lambda x: x["task_order"])
-#         ] == expected.tasks
+TESTS_TO_RUN: str = "**/*.html"
+DATA_TESTS_FOLDER: str = "data/task_results"
+DUMMY_TASK_MODEL = TaskModel(
+    url="dummy", name="dummy", status="dummy", task_order=-1, competition_id=-1
+)
 
 
-# def test_tasks_empty_competitions(test_client):
-#     response = test_client.get(
-#         "/task/get_tasks_for_competition", params={"competition_id": 1}
-#     )
-#     assert response.status_code == 200
-#     assert response.json() == []
+@pytest.mark.parametrize(
+    "html_file",
+    [(x) for x in get_test_files(DATA_TESTS_FOLDER, TESTS_TO_RUN)],
+)
+def test_tasks_parser(test_client, html_file, mocker: MockerFixture):
+    mocker.patch(
+        "parser.parse_utilities._html_from_url",
+        return_value=get_xml_tree_from_file(html_file),
+    )
+    task_results = get_task_results(DUMMY_TASK_MODEL.competition_id, DUMMY_TASK_MODEL)
+    expected = get_expected_task_results(html_file)
+    assert len(task_results) == expected.expected_number_task_results

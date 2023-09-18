@@ -17,7 +17,7 @@ def timeit(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         start = time.perf_counter()
-        result = func(args, kwargs)
+        result = func(*args, **kwargs)
         end = time.perf_counter()
         logger.debug(
             f"Function {func.__name__} executed in {pretty_time_delta(end - start)}"
