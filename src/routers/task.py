@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from actions.utils import try_endpoint
 from database import get_db
 from models.competition import CompetitionModel
 from models.task import TaskModel
@@ -14,6 +15,7 @@ router = APIRouter()
 @router.get(
     "/get_tasks_for_competition", summary="Add a new competition to the scraper"
 )
+@try_endpoint
 async def get_tasks_for_competition(
     competition_id: int, session: Session = Depends(get_db)
 ) -> List[TaskModel]:
