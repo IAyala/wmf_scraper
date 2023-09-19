@@ -26,7 +26,7 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
     )
 
     for user_data in user_data_to_add:
-        response = test_client.post("/competition/add", json=user_data.dict())
+        response = test_client.post("/competition/add_one", json=user_data.dict())
         assert response.status_code == 200
     response = test_client.get(
         "/task/get_tasks_for_competition", params={"competition_id": 1}

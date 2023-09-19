@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.0.6] - 2023-09-18
 ------------
+Small refactoring. Now it is possible to load a competition, but competitor loading is still pending
 
 [0.0.5] - 2023-09-16
 ------------
