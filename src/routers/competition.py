@@ -1,16 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter, Depends  # , HTTPException
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, column, select
 
 from actions.competition import next_competition_id
 from actions.utils import try_endpoint
 from database import get_db
 from models.competition import CompetitionModel, CompetitionRequest
-
-# from routers.task import load_tasks_for_competition
-# from routers.task_result import load_task_results
-
 
 router = APIRouter()
 
