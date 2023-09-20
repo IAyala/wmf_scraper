@@ -81,9 +81,6 @@ async def load_task_results_for_competition(
                     CompetitorModel.name == updated_task_result.competitor_name
                 )
             ).first()
-            from loguru import logger
-
-            logger.debug(competitor_id)
             updated_task_result.competitor_id = competitor_id
             session.add(updated_task_result)
         return session.exec(

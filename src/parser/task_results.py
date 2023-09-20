@@ -15,7 +15,7 @@ from models.task_result import TaskResultModel
 
 def try_int_fallback_zero(value: Union[int, str]) -> int:
     try:
-        return int(value)
+        return int(float(value))
     except (ValueError, TypeError):
         return 0
 
@@ -27,7 +27,7 @@ def get_task_results(
         raise ValueError(
             "Competition_id must be initialized in method `get_task_results`"
         )
-    result = []
+    result: List[TaskResultModel] = []
     page = html_from_url(task_data.url)
     for task_results_info in page.findall(".//tbody"):
         task_results: List[HtmlElement] = task_results_info.findall(".//tr")
@@ -47,10 +47,10 @@ def get_task_results(
                     task_result_id=task_data.task_id,
                     competitor_name=competitor_name,
                     result=result_content[0],
-                    gross_score=result_content[1],
+                    gross_score=try_int_fallback_zero(result_content[1]),
                     task_penalty=try_int_fallback_zero(result_content[2]),
                     competition_penalty=try_int_fallback_zero(result_content[3]),
-                    net_score=result_content[4],
+                    net_score=try_int_fallback_zero(result_content[4]),
                     notes=result_content[5],
                 )
             )
