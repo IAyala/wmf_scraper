@@ -19,6 +19,10 @@ def first_text(elements: List) -> str:
 
 
 def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
+    if not the_competition.competition_id:
+        raise ValueError(
+            "Competition_id must be initialized in method `get_tasks_data`"
+        )
     is_last: bool = False
     result = []
     page = html_from_url(the_competition.url)

@@ -4,12 +4,8 @@ from sqlmodel import Field, SQLModel
 
 
 class CompetitorSimpleModel(SQLModel):
-    name: str = Field(primary_key=True, nullable=False)
-    country: str = Field(primary_key=True, nullable=False)
-    banner: str = Field(nullable=False)
-    competition_id: Optional[int] = Field(
-        default=None, nullable=False, foreign_key="competitionmodel.competition_id"
-    )
+    name: str = Field(unique=True, nullable=False)
+    country: str = Field(nullable=False)
 
 
 class CompetitorModel(CompetitorSimpleModel, table=True):  # type: ignore

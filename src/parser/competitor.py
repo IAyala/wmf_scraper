@@ -14,14 +14,12 @@ def get_competitor_data(
         competitors = competitors_info.findall(".//tr")
         for competitor in competitors:
             info = [td.text_content() for td in competitor.findall(".//td")]
-            competitor_banner, competitor_name = info[1].split(" - ")
+            competitor_name = info[1].split(" - ")[1]
             competitor_country = info[2]
             result.append(
                 CompetitorSimpleModel(
                     name=competitor_name,
                     country=competitor_country,
-                    banner=competitor_banner,
-                    competition_id=the_competition.competition_id,
                 )
             )
     return result

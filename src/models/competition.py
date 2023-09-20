@@ -9,7 +9,12 @@ class CompetitionRequest(SQLModel):
     description: str
 
 
+class LoadCompetitionRequest(SQLModel):
+    competition_id: int
+
+
 class CompetitionModel(CompetitionRequest, table=True):  # type: ignore
-    competition_id: int = Field(primary_key=True, index=True, nullable=False)
-    url: str = Field(primary_key=True, unique=True)
+    competition_id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    url: str = Field(unique=True)
+    description: str = Field(unique=True)
     load_time: Optional[datetime] = Field(default=None)

@@ -8,12 +8,12 @@ from tests.conftest import ONE_COMPETITION_DUMMY_DATA
     "user_data_list, expected_status_code",
     [
         (ONE_COMPETITION_DUMMY_DATA, [200]),
-        (ONE_COMPETITION_DUMMY_DATA * 2, [200, 500]),
+        (ONE_COMPETITION_DUMMY_DATA * 2, [200, 400]),
     ],
 )
 def test_competition_add(test_client, user_data_list, expected_status_code):
     for user_data, expected_status in zip(user_data_list, expected_status_code):
-        response = test_client.post("/competition/add", json=user_data.dict())
+        response = test_client.post("/competition/add_one", json=user_data.dict())
         assert response.status_code == expected_status
 
 
@@ -35,10 +35,11 @@ def test_competition_get_by_desc(
     test_client, user_data_to_add, desc_to_find, expected_len_result
 ):
     for user_data in user_data_to_add:
-        response = test_client.post("/competition/add", json=user_data.dict())
+        response = test_client.post("/competition/add_one", json=user_data.dict())
         assert response.status_code == 200
     response = test_client.get(
-        "/competition/get_by_description", params={"description": desc_to_find}
+        "/competition/get_competition_by_description",
+        params={"description": desc_to_find},
     )
     assert response.status_code == 200
     assert len(response.json()) == expected_len_result
@@ -50,8 +51,8 @@ def test_competition_get_by_desc(
 )
 def test_competition_get_all(test_client, user_data_to_add, expected_len_result):
     for user_data in user_data_to_add:
-        response = test_client.post("/competition/add", json=user_data.dict())
+        response = test_client.post("/competition/add_one", json=user_data.dict())
         assert response.status_code == 200
-    response = test_client.get("/competition/all")
+    response = test_client.get("/competition/get_all_competitions")
     assert response.status_code == 200
     assert len(response.json()) == expected_len_result

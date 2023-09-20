@@ -23,7 +23,7 @@ def test_competitor_parser(
     test_client, user_data_to_add, html_file, mocker: MockerFixture
 ):
     for user_data in user_data_to_add:
-        response = test_client.post("/competition/add", json=user_data.dict())
+        response = test_client.post("/competition/add_one", json=user_data.dict())
         assert response.status_code == 200
     mocker.patch(
         "parser.parse_utilities._html_from_url",

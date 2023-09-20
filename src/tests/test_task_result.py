@@ -21,7 +21,7 @@ DUMMY_TASK_MODEL = TaskModel(
     "html_file",
     [(x) for x in get_test_files(DATA_TESTS_FOLDER, TESTS_TO_RUN)],
 )
-def test_tasks_parser(test_client, html_file, mocker: MockerFixture):
+def test_task_results_parser(html_file, mocker: MockerFixture):
     mocker.patch(
         "parser.parse_utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
