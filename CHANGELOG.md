@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.0] - 2023-09-20
 ------------
+Now a complete loading workflow is in place. Ready to build more functionality from this basic feature
 
 [0.0.6] - 2023-09-18
 ------------
