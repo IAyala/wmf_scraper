@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, column, select
 
-from actions.competition import next_competition_id
+from actions.competition import add_one_competition_helper
 from actions.utils import try_endpoint
 from database import get_db
 from models.competition import CompetitionModel, CompetitionRequest
@@ -16,13 +16,7 @@ router = APIRouter()
 async def add_one_competition(
     req: CompetitionRequest, session: Session = Depends(get_db)
 ) -> CompetitionModel:
-    to_add = CompetitionModel(**req.dict())
-    to_add.competition_id = await next_competition_id(
-        to_add.competition_id, session=session
-    )
-    session.add(to_add)
-    session.commit()
-    return to_add
+    return await add_one_competition_helper(req=req, session=session)
 
 
 @router.post("/add_many", summary="Add a list of new competitions to the scraper")
@@ -32,7 +26,9 @@ async def add_many_competitions(
 ) -> List[CompetitionModel]:
     result = []
     for competition in req:
-        result.append(await add_one_competition(competition, session=session))
+        result.append(
+            await add_one_competition_helper(req=competition, session=session)
+        )
     return result
 
 

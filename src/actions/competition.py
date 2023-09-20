@@ -1,19 +1,6 @@
-from sqlmodel import Session, func, select
+from sqlmodel import Session, select
 
-from actions.utils import exists_record
-from models.competition import CompetitionModel
-
-
-async def next_competition_id(competition_id: int, session: Session) -> int:
-    the_query = select(CompetitionModel).where(
-        CompetitionModel.competition_id == competition_id
-    )
-    if not exists_record(the_query, session=session):
-        result = session.execute(
-            select([func.count(CompetitionModel.competition_id)])
-        ).scalar()
-        return int(result) + 1  # type: ignore
-    raise ValueError(f"Competition id: {competition_id} already exists in database...")
+from models.competition import CompetitionModel, CompetitionRequest
 
 
 async def the_competition(competition_id: int, session: Session) -> CompetitionModel:
@@ -21,7 +8,16 @@ async def the_competition(competition_id: int, session: Session) -> CompetitionM
         select(CompetitionModel).where(
             CompetitionModel.competition_id == competition_id
         )
-    )
-    if not the_competition.one_or_none():
+    ).one_or_none()
+    if not the_competition:
         raise ValueError(f"Competition ID: {competition_id} not found")
-    return the_competition.one()
+    return the_competition
+
+
+async def add_one_competition_helper(
+    req: CompetitionRequest, session: Session
+) -> CompetitionModel:
+    to_add = CompetitionModel(**req.dict())
+    session.add(to_add)
+    session.commit()
+    return to_add

@@ -3,7 +3,7 @@ from functools import partial
 from itertools import chain
 from parser.parse_utilities import html_from_url
 from parser.task import get_tasks_data
-from typing import List, Union
+from typing import List, Optional, Union
 
 from lxml.html import HtmlElement
 
@@ -21,8 +21,12 @@ def try_int_fallback_zero(value: Union[int, str]) -> int:
 
 
 def get_task_results(
-    competition_id: int, task_data: TaskModel
+    competition_id: Optional[int], task_data: TaskModel
 ) -> List[TaskResultModel]:
+    if not competition_id:
+        raise ValueError(
+            "Competition_id must be initialized in method `get_task_results`"
+        )
     result = []
     page = html_from_url(task_data.url)
     for task_results_info in page.findall(".//tbody"):
