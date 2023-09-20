@@ -10,12 +10,13 @@ class TaskResultModel(SQLModel, table=True):  # type: ignore
     competition_penalty: int = Field(nullable=False)
     net_score: int = Field(nullable=False)
     notes: str = Field()
+    competitor_name: str = Field(nullable=False)
+    competition_id: Optional[int] = Field(
+        primary_key=True, nullable=False, foreign_key="competitionmodel.competition_id"
+    )
     task_result_id: Optional[int] = Field(
         primary_key=True, nullable=False, foreign_key="taskmodel.task_id"
     )
-    competitor_name: str = Field(
-        primary_key=True, nullable=False, foreign_key="competitormodel.name"
-    )
-    competition_id: int = Field(
-        primary_key=True, nullable=False, foreign_key="competitionmodel.competition_id"
+    competitor_id: Optional[int] = Field(
+        primary_key=True, nullable=False, foreign_key="competitormodel.competitor_id"
     )

@@ -43,8 +43,9 @@ def get_task_results(
             result.append(
                 TaskResultModel(
                     competition_id=competition_id,
-                    competitor_name=competitor_name,
+                    competitor_id=None,  # Will be searched (by name) later, when loading
                     task_result_id=task_data.task_id,
+                    competitor_name=competitor_name,
                     result=result_content[0],
                     gross_score=result_content[1],
                     task_penalty=try_int_fallback_zero(result_content[2]),

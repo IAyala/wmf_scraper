@@ -1,4 +1,5 @@
 from datetime import datetime
+from parser.competitor import get_competitor_data
 from parser.task import get_tasks_data
 from parser.task_results import get_task_results
 from typing import List
@@ -6,7 +7,9 @@ from typing import List
 from sqlmodel import Session, select
 
 from actions.competition import the_competition
+from actions.utils import exists_record
 from models.competition import CompetitionModel
+from models.competitor import CompetitorModel, CompetitorSimpleModel
 from models.load import (
     LoadCompetitionRequest,
     LoadCompetitionResponse,
@@ -41,6 +44,22 @@ async def load_tasks_for_competition(
     return await add_new_tasks(get_tasks_data(competition))
 
 
+async def load_competitors_for_competition(
+    competition: CompetitionModel, session: Session
+) -> None:
+    async def add_competitor_if_new(
+        competitors_to_add: List[CompetitorSimpleModel],
+    ) -> None:
+        for competitor in competitors_to_add:
+            query = select(CompetitorModel).where(
+                CompetitorModel.name == competitor.name
+            )
+            if not exists_record(query, session=session):
+                session.add(CompetitorModel(**competitor.dict()))
+
+    return await add_competitor_if_new(get_competitor_data(competition))
+
+
 async def load_task_results_for_competition(
     competition: CompetitionModel, task: TaskModel, session: Session
 ) -> List[TaskResultModel]:
@@ -57,6 +76,15 @@ async def load_task_results_for_competition(
         task_results_to_add: List[TaskResultModel],
     ) -> List[TaskResultModel]:
         for updated_task_result in task_results_to_add:
+            competitor_id = session.exec(
+                select(CompetitorModel.competitor_id).where(
+                    CompetitorModel.name == updated_task_result.competitor_name
+                )
+            ).first()
+            from loguru import logger
+
+            logger.debug(competitor_id)
+            updated_task_result.competitor_id = competitor_id
             session.add(updated_task_result)
         return session.exec(
             select(TaskResultModel)
@@ -85,6 +113,7 @@ async def load_competition_helper(
         tasks_added = await load_tasks_for_competition(
             competition_to_update, session=session
         )
+        await load_competitors_for_competition(competition_to_update, session=session)
         for task_to_add in tasks_added:
             response_dict["tasks_loaded"].append(  # type:ignore
                 LoadCompetitionTaskResultsResponse(
