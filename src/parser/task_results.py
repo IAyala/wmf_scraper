@@ -7,7 +7,6 @@ from typing import List, Optional, Union
 
 from lxml.html import HtmlElement
 
-from common.utilities import timeit
 from models.competition import CompetitionModel
 from models.task import TaskModel
 from models.task_result import TaskResultModel
@@ -43,7 +42,8 @@ def get_task_results(
             result.append(
                 TaskResultModel(
                     competition_id=competition_id,
-                    competitor_id=None,  # Will be searched (by name) later, when loading
+                    # Will be searched (by name) later, when loading
+                    competitor_id=None,
                     task_result_id=task_data.task_id,
                     competitor_name=competitor_name,
                     result=result_content[0],
@@ -57,7 +57,6 @@ def get_task_results(
     return result
 
 
-@timeit
 def get_tasks_results_data(the_competition: CompetitionModel) -> List[TaskResultModel]:
     result = []
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
