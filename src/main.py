@@ -1,5 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi_utils.timing import add_timing_middleware
+from loguru import logger
 
 from common.environment import get_version
 from database import create_db_if_not_exists
@@ -10,6 +12,8 @@ app = FastAPI(
     description="This is a REST API to retrieve competition results from WatchMeFly website",
     version=get_version(),
 )
+
+add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")
 
 app.include_router(version.router, prefix="/version", tags=["Version"])
 app.include_router(load.router, prefix="/load", tags=["Load"])
