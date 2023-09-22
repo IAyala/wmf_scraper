@@ -1,21 +1,22 @@
-from typing import List
+from typing import List, Optional
 
 from sqlmodel import SQLModel
 
 from models.competition import CompetitionModel
-from models.task import TaskModel
-from models.task_result import TaskResultModel
 
 
 class LoadCompetitionRequest(SQLModel):
     competition_id: int
 
 
-class LoadCompetitionTaskResultsResponse(SQLModel):
-    task_loaded: TaskModel
-    task_results_loaded: List[TaskResultModel]
+class LoadTaskResponse(SQLModel):
+    competitor_no_result: Optional[List[str]] = None
+    result_no_competitor: Optional[List[str]] = None
+    load_message: str
+    task_order: int
 
 
 class LoadCompetitionResponse(SQLModel):
+    status: str = "OK"
     competition_loaded: CompetitionModel
-    tasks_loaded: List[LoadCompetitionTaskResultsResponse]
+    tasks_loaded: List[LoadTaskResponse] = []
