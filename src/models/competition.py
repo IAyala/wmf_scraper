@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class CompetitionRequest(SQLModel):
@@ -18,3 +18,5 @@ class CompetitionModel(CompetitionRequest, table=True):  # type: ignore
     url: str = Field(unique=True)
     description: str = Field(unique=True)
     load_time: Optional[datetime] = Field(default=None)
+
+    tasks: List["TaskModel"] = Relationship(back_populates="competition")  # type: ignore # noqa

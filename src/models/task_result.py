@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class TaskResultModel(SQLModel, table=True):  # type: ignore
@@ -20,3 +20,4 @@ class TaskResultModel(SQLModel, table=True):  # type: ignore
     competitor_id: Optional[int] = Field(
         primary_key=True, nullable=False, foreign_key="competitormodel.competitor_id"
     )
+    task_results: Optional["TaskModel"] = Relationship(back_populates="task_results")  # type: ignore # noqa
