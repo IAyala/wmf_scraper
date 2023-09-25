@@ -14,7 +14,7 @@ class TaskResultModel(SQLModel, table=True):  # type: ignore
     competition_id: Optional[int] = Field(
         primary_key=True, nullable=False, foreign_key="competitionmodel.competition_id"
     )
-    task_result_id: Optional[int] = Field(
+    task_id: Optional[int] = Field(
         primary_key=True, nullable=False, foreign_key="taskmodel.task_id"
     )
     competitor_id: Optional[int] = Field(

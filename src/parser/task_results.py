@@ -44,7 +44,7 @@ def get_task_results(
                     competition_id=competition_id,
                     # Will be searched (by name) later, when loading
                     competitor_id=None,
-                    task_result_id=task_data.task_id,
+                    task_id=task_data.task_id,
                     competitor_name=competitor_name,
                     result=result_content[0],
                     gross_score=try_int_fallback_zero(result_content[1]),

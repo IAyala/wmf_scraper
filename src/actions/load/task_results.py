@@ -14,9 +14,7 @@ async def load_task_results_for_competition(
 ) -> List[TaskResultModel]:
     async def remove_previous_task_results():
         prev_task_results = session.exec(
-            select(TaskResultModel).where(
-                TaskResultModel.task_result_id == task.task_id
-            )
+            select(TaskResultModel).where(TaskResultModel.task_id == task.task_id)
         )
         for prev_task_result in prev_task_results:
             session.delete(prev_task_result)
@@ -35,7 +33,7 @@ async def load_task_results_for_competition(
         return session.exec(
             select(TaskResultModel)
             .where(TaskResultModel.competition_id == competition.competition_id)
-            .where(TaskResultModel.task_result_id == task.task_id)
+            .where(TaskResultModel.task_id == task.task_id)
         ).all()
 
     await remove_previous_task_results()
