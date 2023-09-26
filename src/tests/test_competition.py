@@ -1,7 +1,23 @@
+from typing import List
+
 import pytest
 
 from models.competition import CompetitionRequest
 from tests.conftest import MANY_COMPETITIONS_DUMMY_DATA, ONE_COMPETITION_DUMMY_DATA
+
+
+def add_user_data_and_assert(
+    user_data_to_add: List[CompetitionRequest], test_client, expected_codes: List[int]
+) -> None:
+    for user_data, expected_code in zip(user_data_to_add, expected_codes):
+        response = test_client.post(
+            "/competition/add_one",
+            params={
+                "competition_description": user_data.competition_description,
+                "competition_url": user_data.competition_url,
+            },
+        )
+        assert response.status_code == expected_code
 
 
 @pytest.mark.parametrize(
@@ -12,15 +28,7 @@ from tests.conftest import MANY_COMPETITIONS_DUMMY_DATA, ONE_COMPETITION_DUMMY_D
     ],
 )
 def test_competition_add_one(test_client, user_data_list, expected_status_code):
-    for user_data, expected_status in zip(user_data_list, expected_status_code):
-        response = test_client.post(
-            "/competition/add_one",
-            params={
-                "competition_description": user_data.competition_description,
-                "competition_url": user_data.competition_url,
-            },
-        )
-        assert response.status_code == expected_status
+    add_user_data_and_assert(user_data_list, test_client, expected_status_code)
 
 
 @pytest.mark.parametrize(
@@ -62,15 +70,7 @@ def test_competition_remove_one(
     competition_id_to_remove,
     expected_status_remove,
 ):
-    for user_data, expected_status in zip(user_data_to_add, expected_status_codes):
-        response = test_client.post(
-            "/competition/add_one",
-            params={
-                "competition_description": user_data.competition_description,
-                "competition_url": user_data.competition_url,
-            },
-        )
-        assert response.status_code == expected_status
+    add_user_data_and_assert(user_data_to_add, test_client, expected_status_codes)
     response = test_client.post(
         "/competition/remove_one", params={"competition_id": competition_id_to_remove}
     )
@@ -82,15 +82,9 @@ def test_competition_remove_one(
     [(user_data_to_add, 2)],
 )
 def test_competition_get_all(test_client, user_data_to_add, expected_len_result):
-    for user_data in user_data_to_add:
-        response = test_client.post(
-            "/competition/add_one",
-            params={
-                "competition_description": user_data.competition_description,
-                "competition_url": user_data.competition_url,
-            },
-        )
-        assert response.status_code == 200
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
     response = test_client.get("/competition/get_all_competitions")
     assert response.status_code == 200
     assert len(response.json()) == expected_len_result
@@ -107,15 +101,9 @@ def test_competition_get_all(test_client, user_data_to_add, expected_len_result)
 def test_competition_get_by_desc(
     test_client, user_data_to_add, desc_to_find, expected_len_result
 ):
-    for user_data in user_data_to_add:
-        response = test_client.post(
-            "/competition/add_one",
-            params={
-                "competition_description": user_data.competition_description,
-                "competition_url": user_data.competition_url,
-            },
-        )
-        assert response.status_code == 200
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
     response = test_client.get(
         "/competition/get_competition_by_description",
         params={"description": desc_to_find},
