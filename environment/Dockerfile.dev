@@ -95,7 +95,8 @@ RUN code-server --install-extension ms-python.python \
     && code-server --install-extension yzhang.markdown-all-in-one \
     && code-server --install-extension ms-python.isort \
     && code-server --install-extension tamasfe.even-better-toml \
-    && code-server --install-extension alexcvzz.vscode-sqlite
+    && code-server --install-extension alexcvzz.vscode-sqlite \
+    && code-server --install-extension bierner.markdown-mermaid
 
 # Python
 ADD ./pyproject.toml ${HOME}/source/
