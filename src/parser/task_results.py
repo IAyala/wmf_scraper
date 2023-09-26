@@ -1,69 +1,84 @@
-# import multiprocessing
-# from functools import partial
-# from itertools import chain
-# from parser.parse_utilities import html_from_url
-# from parser.task import get_tasks_data
-# from typing import List, Optional, Union
+import multiprocessing
+from functools import partial
+from itertools import chain
+from parser.competitor import get_competitor_data
+from parser.parse_utilities import html_from_url
+from parser.task import get_tasks_data
+from typing import List, Optional, Union
 
-# from lxml.html import HtmlElement
+from lxml.html import HtmlElement
+from sqlmodel import Session
 
-# from models.competition import CompetitionModel
-# from models.task import TaskModel
-# from models.task_result import TaskResultModel
-
-
-# def try_int_fallback_zero(value: Union[int, str]) -> int:
-#     try:
-#         return int(float(value))
-#     except (ValueError, TypeError):
-#         return 0
+from actions.competitor import preprocess_competitors
+from models.competition import CompetitionModel
+from models.task import TaskModel
+from models.task_result import TaskResultModel
 
 
-# def get_task_results(
-#     competition_id: Optional[int], task_data: TaskModel
-# ) -> List[TaskResultModel]:
-#     if not competition_id:
-#         raise ValueError(
-#             "Competition_id must be initialized in method `get_task_results`"
-#         )
-#     result: List[TaskResultModel] = []
-#     page = html_from_url(task_data.url)
-#     for task_results_info in page.findall(".//tbody"):
-#         task_results: List[HtmlElement] = task_results_info.findall(".//tr")
-#         for task_result in task_results:
-#             competitor_name = (
-#                 task_result.findall(".//span[@class='fw-semibold']")[0]
-#                 .text_content()
-#                 .split(" - ")[1]
-#             )
-#             result_content = [td.text_content() for td in task_result.findall(".//td")][
-#                 2:
-#             ]
-#             result.append(
-#                 TaskResultModel(
-#                     competition_id=competition_id,
-#                     # Will be searched (by name) later, when loading
-#                     competitor_id=None,
-#                     task_id=task_data.task_id,
-#                     competitor_name=competitor_name,
-#                     result=result_content[0],
-#                     gross_score=try_int_fallback_zero(result_content[1]),
-#                     task_penalty=try_int_fallback_zero(result_content[2]),
-#                     competition_penalty=try_int_fallback_zero(result_content[3]),
-#                     net_score=try_int_fallback_zero(result_content[4]),
-#                     notes=result_content[5],
-#                 )
-#             )
-#     return result
+def try_int_fallback_zero(value: Union[int, str]) -> int:
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return 0
 
 
-# def get_tasks_results_data(the_competition: CompetitionModel) -> List[TaskResultModel]:
-#     result = []
-#     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-#     result = pool.map(
-#         partial(get_task_results, the_competition.competition_id),
-#         get_tasks_data(the_competition),
-#     )
-#     pool.close()
-#     pool.join()
-#     return list(chain.from_iterable(result))
+def get_competition_id_from_name(
+    competitor_name: str, competitors_mapping: Optional[dict]
+) -> int:
+    if competitors_mapping and competitor_name in competitors_mapping:
+        return competitors_mapping[competitor_name]
+    return -1
+
+
+def get_task_results(
+    task_data: TaskModel, competitors_mapping: Optional[dict] = None
+) -> List[TaskResultModel]:
+    result: List[TaskResultModel] = []
+    page = html_from_url(task_data.task_url)
+    for task_results_info in page.findall(".//tbody"):
+        task_results: List[HtmlElement] = task_results_info.findall(".//tr")
+        for task_result in task_results:
+            competitor_name = (
+                task_result.findall(".//span[@class='fw-semibold']")[0]
+                .text_content()
+                .split(" - ")[1]
+            )
+            result_content = [td.text_content() for td in task_result.findall(".//td")][
+                2:
+            ]
+            result.append(
+                TaskResultModel(
+                    task_id=task_data.task_id,
+                    competitor_id=get_competition_id_from_name(
+                        competitor_name, competitors_mapping
+                    ),
+                    tr_result=result_content[0],
+                    tr_gross_score=try_int_fallback_zero(result_content[1]),
+                    tr_task_penalty=try_int_fallback_zero(result_content[2]),
+                    tr_competition_penalty=try_int_fallback_zero(result_content[3]),
+                    tr_net_score=try_int_fallback_zero(result_content[4]),
+                    tr_notes=result_content[5],
+                )
+            )
+    return result
+
+
+def get_tasks_results_data(
+    the_competition: CompetitionModel, session: Session
+) -> List[TaskResultModel]:
+    competitors_in_competition = get_competitor_data(the_competition)
+    competitors = preprocess_competitors(competitors_in_competition, session=session)
+    result = []
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    result = pool.map(
+        partial(
+            get_task_results,
+            competitors_mapping={
+                x.competitor_name: x.competitor_id for x in competitors
+            },
+        ),
+        get_tasks_data(the_competition),
+    )
+    pool.close()
+    pool.join()
+    return list(chain.from_iterable(result))
