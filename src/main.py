@@ -5,7 +5,9 @@ from loguru import logger
 
 from common.environment import get_version
 from database import create_db_if_not_exists
-from routers import competition, competitor, load, query, task, task_result, version
+
+# from routers import competition, competitor, load, query, task, task_result, version
+from routers import competition, version
 
 app = FastAPI(
     title="WMF_Scraper",
@@ -15,13 +17,23 @@ app = FastAPI(
 
 add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")
 
+# The endpoints should be:
+
+# Load -> First purge competition, then scrape results
+# Competition -> add / remove / purge
+# Competitor -> add / remove
+# Task -> add / remove
+# TaskResult -> add / remove
+# Parser -> read tasks for competition / read task results for task (parallel)
+# Query -> Results by competitor in a competition
+
 app.include_router(version.router, prefix="/version", tags=["Version"])
-app.include_router(load.router, prefix="/load", tags=["Load"])
-app.include_router(query.router, prefix="/query", tags=["Query"])
+# app.include_router(load.router, prefix="/load", tags=["Load"])
+# app.include_router(query.router, prefix="/query", tags=["Query"])
 app.include_router(competition.router, prefix="/competition", tags=["Competition"])
-app.include_router(competitor.router, prefix="/competitor", tags=["Competitor"])
-app.include_router(task.router, prefix="/task", tags=["Task"])
-app.include_router(task_result.router, prefix="/task_result", tags=["Task Results"])
+# app.include_router(competitor.router, prefix="/competitor", tags=["Competitor"])
+# app.include_router(task.router, prefix="/task", tags=["Task"])
+# app.include_router(task_result.router, prefix="/task_result", tags=["Task Results"])
 
 create_db_if_not_exists()
 

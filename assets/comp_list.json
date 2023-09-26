@@ -1,66 +1,66 @@
 [
   {
-    "description": "2022 US National Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=usnationals2022&v=tt"
+    "competition_description": "2022 US National Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=usnationals2022&v=tt"
   },
   {
-    "description": "British Nationals 2022",
-    "url": "https://www.watchmefly.net/events/event.php?e=british2022&v=tt"
+    "competition_description": "British Nationals 2022",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=british2022&v=tt"
   },
   {
-    "description": "Open Czech National Balloon Championship 2022",
-    "url": "https://www.watchmefly.net/events/event.php?e=czech2022&v=tt"
+    "competition_description": "Open Czech National Balloon Championship 2022",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=czech2022&v=tt"
   },
   {
-    "description": "6th PRE Junior World Hot Air Balloon Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=grudziadz2022&v=tt"
+    "competition_description": "6th PRE Junior World Hot Air Balloon Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=grudziadz2022&v=tt"
   },
   {
-    "description": "40. \u00d6sterreichische Dopgas Hei\u00dfluftballon Staatsmeisterschaft 2022",
-    "url": "https://www.watchmefly.net/events/event.php?e=austria2022&v=tt"
+    "competition_description": "40. \u00d6sterreichische Dopgas Hei\u00dfluftballon Staatsmeisterschaft 2022",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=austria2022&v=tt"
   },
   {
-    "description": "24th FAI World Hot Air Balloon Championship 2022",
-    "url": "https://www.watchmefly.net/events/event.php?e=worlds2022&v=tt"
+    "competition_description": "24th FAI World Hot Air Balloon Championship 2022",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=worlds2022&v=tt"
   },
   {
-    "description": "41. Offene \u00d6sterreichische Staatsmeisterschaft und 28. Steirische Landesmeisterschaft",
-    "url": "https://www.watchmefly.net/events/event.php?e=steirische2023&v=tt"
+    "competition_description": "41. Offene \u00d6sterreichische Staatsmeisterschaft und 28. Steirische Landesmeisterschaft",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=steirische2023&v=tt"
   },
   {
-    "description": "Dutch Balloon Trophy 2023",
-    "url": "https://www.watchmefly.net/events/event.php?e=dbt2023&v=tt"
+    "competition_description": "Dutch Balloon Trophy 2023",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=dbt2023&v=tt"
   },
   {
-    "description": "Marijampole Cup 2023",
-    "url": "https://www.watchmefly.net/events/event.php?e=marijampole2023&v=tt"
+    "competition_description": "Marijampole Cup 2023",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=marijampole2023&v=tt"
   },
   {
-    "description": "2023 BFA US National Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=usnationals2023&v=tt"
+    "competition_description": "2023 BFA US National Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=usnationals2023&v=tt"
   },
   {
-    "description": "36\u00ba Campeonato Brasileiro de Balonismo",
-    "url": "https://www.watchmefly.net/events/event.php?e=cbb2023&v=tt"
+    "competition_description": "36\u00ba Campeonato Brasileiro de Balonismo",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=cbb2023&v=tt"
   },
   {
-    "description": "39th Polish Hot Air Balloon Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=poland2023&v=tt"
+    "competition_description": "39th Polish Hot Air Balloon Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=poland2023&v=tt"
   },
   {
-    "description": "6. Horber Neckar-Balloncup and UK Nationals 2023",
-    "url": "https://www.watchmefly.net/events/event.php?e=horberneckar2023&v=tt"
+    "competition_description": "6. Horber Neckar-Balloncup and UK Nationals 2023",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=horberneckar2023&v=tt"
   },
   {
-    "description": "32nd Enea Leszno Balloon Cup and 11th Polish Junior Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=leszno2023&v=tt"
+    "competition_description": "32nd Enea Leszno Balloon Cup and 11th Polish Junior Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=leszno2023&v=tt"
   },
   {
-    "description": "6th FAI Junior World Hot Air Balloon Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=juniorworlds2023&v=tt"
+    "competition_description": "6th FAI Junior World Hot Air Balloon Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=juniorworlds2023&v=tt"
   },
   {
-    "description": "Central European Cup 2023 and Pre 25th Worlds Hot Air Balloon Championship",
-    "url": "https://www.watchmefly.net/events/event.php?e=CECUP23&v=tt"
+    "competition_description": "Central European Cup 2023 and Pre 25th Worlds Hot Air Balloon Championship",
+    "competition_url": "https://www.watchmefly.net/events/event.php?e=CECUP23&v=tt"
   }
 ]

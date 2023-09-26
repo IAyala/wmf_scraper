@@ -22,7 +22,23 @@ def get_test_files(data_tests_folder: str, tests_to_run: str) -> List[Path]:
     return list(resolve_path(f"{data_tests_folder}/{FILE_FOLDER}").glob(tests_to_run))
 
 
-ONE_COMPETITION_DUMMY_DATA = [CompetitionRequest(url="MyURL", description="_")]
+ONE_COMPETITION_DUMMY_DATA = [
+    CompetitionRequest(competition_url="MyURL", competition_description="_")
+]
+
+MANY_COMPETITIONS_DUMMY_DATA = [
+    [
+        CompetitionRequest(
+            competition_url="MyURL1", competition_description="Description1"
+        ),
+        CompetitionRequest(
+            competition_url="MyURL2", competition_description="Description2"
+        ),
+        CompetitionRequest(
+            competition_url="MyURL3", competition_description="Description3"
+        ),
+    ]
+]
 
 
 def get_xml_tree_from_file(path: Path):

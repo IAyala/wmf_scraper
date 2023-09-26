@@ -11,7 +11,7 @@
         <img src="https://github.com/IAyala/wmf_scraper/blob/master/coverage_badge/coverage.svg"/>
     </a>
     <a href="#">
-        <img src="https://img.shields.io/badge/tests-18%20passed%2C%200%20failed-green"/>
+        <img src="https://img.shields.io/badge/tests-12%20passed%2C%200%20failed-green"/>
     </a>
     <a href="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml">
         <img src="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml/badge.svg"/>
@@ -75,8 +75,8 @@ And then go to: [http://localhost:8000/docs](http://localhost:8000/docs)
 erDiagram
     COMPETITION_MODEL {
         int competition_id PK
-        string competition_url
-        string competition_description
+        string competition_url "unique"
+        string competition_description "unique"
         datetime competition_load_time "nullable"
     }
     COMPETITION_MODEL ||--o{ TASK_MODEL : contains
