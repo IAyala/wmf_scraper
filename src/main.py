@@ -15,8 +15,7 @@ app = FastAPI(
 
 add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")
 
-# The endpoints should be:
-
+# TODO: The endpoints should be:
 # Load -> First purge competition, then scrape results
 # Competition -> add / remove / purge
 # Competitor -> add / remove
