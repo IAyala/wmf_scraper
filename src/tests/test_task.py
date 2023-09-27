@@ -7,6 +7,7 @@ from tests.conftest import (
     get_test_files,
     get_xml_tree_from_file,
 )
+from tests.test_competition import add_user_data_and_assert
 
 TESTS_TO_RUN: str = "**/*.html"
 DATA_TESTS_FOLDER: str = "data/competitors_and_tasks"
@@ -20,14 +21,13 @@ DATA_TESTS_FOLDER: str = "data/competitors_and_tasks"
     ],
 )
 def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFixture):
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
-
-    for user_data in user_data_to_add:
-        response = test_client.post("/competition/add_one", json=user_data.dict())
-        assert response.status_code == 200
     response = test_client.get(
         "/task/get_tasks_for_competition", params={"competition_id": 1}
     )
@@ -36,7 +36,8 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
     if response.status_code == 200:
         assert len(response.json()) == expected.expected_number_tasks
         assert [
-            x["name"] for x in sorted(response.json(), key=lambda x: x["task_order"])
+            x["task_name"]
+            for x in sorted(response.json(), key=lambda x: x["task_order"])
         ] == expected.tasks
 
 
@@ -44,5 +45,5 @@ def test_tasks_empty_competitions(test_client):
     response = test_client.get(
         "/task/get_tasks_for_competition", params={"competition_id": 1}
     )
-    assert response.status_code == 200
-    assert response.json() == []
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Competition ID: 1 not found"

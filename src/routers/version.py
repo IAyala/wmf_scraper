@@ -2,7 +2,7 @@ from typing import Dict
 
 from fastapi import APIRouter
 
-from actions.utils import try_endpoint
+from actions.utilities import try_endpoint
 from common.environment import get_version
 
 router = APIRouter()

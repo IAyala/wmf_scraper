@@ -7,6 +7,7 @@ from tests.conftest import (
     get_test_files,
     get_xml_tree_from_file,
 )
+from tests.test_competition import add_user_data_and_assert
 
 TESTS_TO_RUN: str = "**/*.html"
 DATA_TESTS_FOLDER: str = "data/competitors_and_tasks"
@@ -22,11 +23,11 @@ DATA_TESTS_FOLDER: str = "data/competitors_and_tasks"
 def test_competitor_parser(
     test_client, user_data_to_add, html_file, mocker: MockerFixture
 ):
-    for user_data in user_data_to_add:
-        response = test_client.post("/competition/add_one", json=user_data.dict())
-        assert response.status_code == 200
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.get(
@@ -42,5 +43,52 @@ def test_competitor_empty_competitions(test_client):
     response = test_client.get(
         "/competitor/get_competitors_in_competition", params={"competition_id": 1}
     )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Competition ID: 1 not found"
+
+
+@pytest.mark.parametrize(
+    "user_data_to_add, html_file",
+    [
+        (ONE_COMPETITION_DUMMY_DATA, x)
+        for x in get_test_files(DATA_TESTS_FOLDER, TESTS_TO_RUN)
+    ],
+)
+def test_add_competitors(
+    test_client, user_data_to_add, html_file, mocker: MockerFixture, caplog
+):
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
+    mocker.patch(
+        "parser.utilities._html_from_url",
+        return_value=get_xml_tree_from_file(html_file),
+    )
+    response = test_client.post(
+        "/competitor/add_competitors_in_competition", params={"competition_id": 1}
+    )
+    if response.status_code == 200:
+        assert "Competitor 1 added" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "user_data_to_add, html_file",
+    [(ONE_COMPETITION_DUMMY_DATA, get_test_files(DATA_TESTS_FOLDER, TESTS_TO_RUN)[-1])],
+)
+def test_add_competitors_already_added(
+    test_client, user_data_to_add, html_file, mocker: MockerFixture, caplog
+):
+    add_user_data_and_assert(
+        user_data_to_add, test_client, [200] * len(user_data_to_add)
+    )
+    mocker.patch(
+        "parser.utilities._html_from_url",
+        return_value=get_xml_tree_from_file(html_file),
+    )
+    response = test_client.post(
+        "/competitor/add_competitors_in_competition", params={"competition_id": 1}
+    )
+    response = test_client.post(
+        "/competitor/add_competitors_in_competition", params={"competition_id": 1}
+    )
     assert response.status_code == 200
-    assert response.json() == []

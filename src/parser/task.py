@@ -1,7 +1,8 @@
 import re
-from parser.parse_utilities import URL_PREFIX, html_from_url
+from parser.utilities import URL_PREFIX, html_from_url
 from typing import List, Tuple
 
+from actions.utilities import optional_to_int_fallback_0
 from models.competition import CompetitionModel
 from models.task import TaskModel
 
@@ -19,13 +20,9 @@ def first_text(elements: List) -> str:
 
 
 def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
-    if not the_competition.competition_id:
-        raise ValueError(
-            "Competition_id must be initialized in method `get_tasks_data`"
-        )
     is_last: bool = False
     result = []
-    page = html_from_url(the_competition.url)
+    page = html_from_url(the_competition.competition_url)
     for task_info in page.findall(".//a[@class='text-black']"):
         if task_info.getnext() is not None and task_info.getnext().tag == "h5":
             is_last = True
@@ -35,11 +32,13 @@ def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
         task_status = first_text(task_info.findall(r".//div[@class='ms-auto']/h7"))
         result.append(
             TaskModel(
-                url=f"{URL_PREFIX}/{task_url}",
-                name=task_name,
-                status=task_status,
+                task_url=f"{URL_PREFIX}/{task_url}",
+                task_name=task_name,
+                task_status=task_status,
                 task_order=task_order,
-                competition_id=the_competition.competition_id,
+                competition_id=optional_to_int_fallback_0(
+                    the_competition.competition_id
+                ),
             )
         )
         if is_last:

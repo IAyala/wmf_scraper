@@ -11,7 +11,7 @@
         <img src="https://github.com/IAyala/wmf_scraper/blob/master/coverage_badge/coverage.svg"/>
     </a>
     <a href="#">
-        <img src="https://img.shields.io/badge/tests-18%20passed%2C%200%20failed-green"/>
+        <img src="https://img.shields.io/badge/tests-25%20passed%2C%200%20failed-green"/>
     </a>
     <a href="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml">
         <img src="https://github.com/IAyala/wmf_scraper/actions/workflows/publish_coverage.yml/badge.svg"/>
@@ -55,4 +55,54 @@ Run the following command in the dev environment to get some help:
 
 ```bash
 $ help
+```
+
+## Documentation
+
+### Running the API
+
+All the results are retrieved from `watchmefly` website through web scraping techniques, and stored in `sqlite` database to be queried afterwards. The default port where the API runs is `8000` by default, and swagger generates automatic doc page for you, so just execute:
+
+```bash
+$ python src/main.py
+```
+
+And then go to: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Database Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    COMPETITION_MODEL {
+        int competition_id PK
+        string competition_url "unique"
+        string competition_description "unique"
+        datetime competition_load_time "nullable"
+    }
+    COMPETITION_MODEL ||--o{ TASK_MODEL : contains
+    TASK_MODEL {
+        int task_id PK
+        int competition_id FK
+        string task_url
+        string task_name
+        string task_status
+        int task_order
+    }
+    TASK_MODEL ||--o{ TASK_RESULT_MODEL : contains
+    TASK_RESULT_MODEL {
+        int task_id PK, FK
+        int competitor_id PK, FK
+        str tr_result
+        int tr_gross_score
+        int tr_task_penalty
+        int tr_competition_penalty
+        int tr_net_score
+        string tr_notes "nullable"
+    }
+    COMPETITOR_MODEL ||--o{ TASK_RESULT_MODEL : participates
+    COMPETITOR_MODEL {
+        int competitor_id PK
+        string competitor_name "unique"
+        string competitor_country
+    }
 ```
