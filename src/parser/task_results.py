@@ -2,8 +2,8 @@ import multiprocessing
 from functools import partial
 from itertools import chain
 from parser.competitor import get_competitor_data
-from parser.parse_utilities import html_from_url
 from parser.task import get_tasks_data
+from parser.utilities import html_from_url
 from typing import List, Optional, Union
 
 from lxml.html import HtmlElement

@@ -1,4 +1,4 @@
-from parser.parse_utilities import html_from_url
+from parser.utilities import html_from_url
 from typing import List
 
 from models.competition import CompetitionModel

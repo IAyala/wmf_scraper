@@ -3,7 +3,7 @@ from typing import List
 from loguru import logger
 from sqlmodel import Session, select
 
-from actions.utils import exists_record
+from actions.utilities import exists_record
 from models.competitor import CompetitorModel
 
 

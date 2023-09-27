@@ -3,7 +3,7 @@
 
 # from sqlmodel import Session, select
 
-# from actions.utils import exists_record
+# from actions.utilities import exists_record
 # from models.competition import CompetitionModel
 # from models.competitor import CompetitorModel, CompetitorSimpleModel
 

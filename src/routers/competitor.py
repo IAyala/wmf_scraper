@@ -6,7 +6,7 @@ from sqlmodel import Session, column, select
 
 from actions.competition import the_competition
 from actions.competitor import preprocess_competitors
-from actions.utils import try_endpoint
+from actions.utilities import try_endpoint
 from database import get_db
 from models.competitor import CompetitorModel
 

@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 
-from actions.utils import exists_record
+from actions.utilities import exists_record
 from models.competition import CompetitionModel, CompetitionPurgeResponse
 from models.task import TaskModel
 from models.task_result import TaskResultModel

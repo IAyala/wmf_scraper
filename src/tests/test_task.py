@@ -25,7 +25,7 @@ def test_tasks_parser(test_client, user_data_to_add, html_file, mocker: MockerFi
         user_data_to_add, test_client, [200] * len(user_data_to_add)
     )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.get(

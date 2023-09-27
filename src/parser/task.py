@@ -1,8 +1,8 @@
 import re
-from parser.parse_utilities import URL_PREFIX, html_from_url
+from parser.utilities import URL_PREFIX, html_from_url
 from typing import List, Tuple
 
-from actions.utils import optional_to_int_fallback_0
+from actions.utilities import optional_to_int_fallback_0
 from models.competition import CompetitionModel
 from models.task import TaskModel
 

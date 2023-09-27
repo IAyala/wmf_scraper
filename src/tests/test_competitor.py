@@ -27,7 +27,7 @@ def test_competitor_parser(
         user_data_to_add, test_client, [200] * len(user_data_to_add)
     )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.get(
@@ -61,7 +61,7 @@ def test_add_competitors(
         user_data_to_add, test_client, [200] * len(user_data_to_add)
     )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.post(
@@ -82,7 +82,7 @@ def test_add_competitors_already_added(
         user_data_to_add, test_client, [200] * len(user_data_to_add)
     )
     mocker.patch(
-        "parser.parse_utilities._html_from_url",
+        "parser.utilities._html_from_url",
         return_value=get_xml_tree_from_file(html_file),
     )
     response = test_client.post(

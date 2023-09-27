@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from actions.load.competition import load_competition_helper
-from actions.utils import try_endpoint
+from actions.utilities import try_endpoint
 from database import get_db
 from models.load import LoadCompetitionRequest, LoadCompetitionResponse
 

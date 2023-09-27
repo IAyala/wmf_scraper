@@ -8,7 +8,7 @@ from actions.competition import (
     remove_related_competition_objects,
     the_competition,
 )
-from actions.utils import try_endpoint
+from actions.utilities import try_endpoint
 from database import get_db
 from models.competition import (
     CompetitionModel,

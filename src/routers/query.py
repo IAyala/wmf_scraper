@@ -4,7 +4,7 @@
 # from sqlmodel import Session, select
 
 # from actions.competition import the_competition
-# from actions.utils import try_endpoint
+# from actions.utilities import try_endpoint
 # from database import get_db
 # from models.query import CompetitorResults
 # from models.task_result import TaskResultModel
