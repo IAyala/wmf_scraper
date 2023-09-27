@@ -9,6 +9,12 @@ class CompetitionPurgeResponse(SQLModel):
     number_tasks_removed: int
     number_task_results_removed: int
 
+    def __str__(self) -> str:
+        message: str = f"Competition {self.competition_id_purged} has been purged. "
+        message += f"{self.number_task_results_removed} tasks removed "
+        message += f"and {self.number_task_results_removed} task results removed"
+        return message
+
 
 class CompetitionRequest(SQLModel):  # type: ignore
     competition_url: str = Field(unique=True)

@@ -9,7 +9,7 @@ from typing import List, Optional, Union
 from lxml.html import HtmlElement
 from sqlmodel import Session
 
-from actions.competitor import preprocess_competitors
+from actions.competitor import competitors_mapping
 from models.competition import CompetitionModel
 from models.task import TaskModel
 from models.task_result import TaskResultModel
@@ -63,22 +63,23 @@ def get_task_results(
     return result
 
 
-def get_tasks_results_data(
-    the_competition: CompetitionModel, session: Session
+def get_task_results_parallel(
+    tasks: List[TaskModel], competitors: dict
 ) -> List[TaskResultModel]:
-    competitors_in_competition = get_competitor_data(the_competition)
-    competitors = preprocess_competitors(competitors_in_competition, session=session)
     result = []
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     result = pool.map(
-        partial(
-            get_task_results,
-            competitors_mapping={
-                x.competitor_name: x.competitor_id for x in competitors
-            },
-        ),
-        get_tasks_data(the_competition),
+        partial(get_task_results, competitors_mapping=competitors),
+        tasks,
     )
     pool.close()
     pool.join()
     return list(chain.from_iterable(result))
+
+
+def get_tasks_results_data(
+    the_competition: CompetitionModel, session: Session
+) -> List[TaskResultModel]:
+    competitors_in_competition = get_competitor_data(the_competition)
+    the_competitors = competitors_mapping(competitors_in_competition, session=session)
+    return get_task_results_parallel(get_tasks_data(the_competition), the_competitors)

@@ -26,3 +26,10 @@ def preprocess_competitors(
         result.append(updated_competitor)
         session.commit()
     return result
+
+
+def competitors_mapping(competitors: List[CompetitorModel], session: Session) -> dict:
+    result = {}
+    for competitor in preprocess_competitors(competitors, session):
+        result[competitor.competitor_name] = competitor.competitor_id
+    return result
