@@ -1,7 +1,10 @@
+from typing import List
+
 from sqlmodel import Session, select
 
 from actions.utilities import exists_record
 from models.competition import CompetitionModel, CompetitionPurgeResponse
+from models.competitor import CompetitorModel
 from models.task import TaskModel
 from models.task_result import TaskResultModel
 
@@ -45,3 +48,23 @@ async def remove_related_competition_objects(
         number_tasks_removed=n_tasks,
         number_task_results_removed=n_task_results,
     )
+
+
+async def competitions_for_competitor(
+    competitor_name: str, session: Session
+) -> List[CompetitionModel]:
+    all_results = session.exec(
+        select(CompetitionModel)
+        .join(TaskModel, TaskModel.competition_id == CompetitionModel.competition_id)
+        .join(
+            TaskResultModel,
+            TaskModel.task_id == TaskResultModel.task_id,
+        )
+        .join(
+            CompetitorModel,
+            CompetitorModel.competitor_id == TaskResultModel.competitor_id,
+        )
+        .where(CompetitorModel.competitor_name == competitor_name)
+        .distinct()
+    ).all()
+    return all_results

@@ -5,9 +5,7 @@ from loguru import logger
 
 from common.environment import get_version
 from database import create_db_if_not_exists
-
-# from routers import competition, competitor, load, query, task, task_result, version
-from routers import competition, competitor, load, task, task_result, version
+from routers import competition, competitor, load, query, task, task_result, version
 
 app = FastAPI(
     title="WMF_Scraper",
@@ -29,7 +27,7 @@ add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")
 
 app.include_router(version.router, prefix="/version", tags=["Version"])
 app.include_router(load.router, prefix="/load", tags=["Load"])
-# app.include_router(query.router, prefix="/query", tags=["Query"])
+app.include_router(query.router, prefix="/query", tags=["Query"])
 app.include_router(competition.router, prefix="/competition", tags=["Competition"])
 app.include_router(competitor.router, prefix="/competitor", tags=["Competitor"])
 app.include_router(task.router, prefix="/task", tags=["Task"])

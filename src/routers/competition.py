@@ -1,10 +1,11 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
-from sqlmodel import Session, column, select
+from sqlmodel import Session, col, select
 
 from actions.competition import (
     add_one_competition_helper,
+    competitions_for_competitor,
     remove_related_competition_objects,
     the_competition,
 )
@@ -84,6 +85,17 @@ async def get_competition_by_description(
 ) -> List[CompetitionModel]:
     return session.exec(
         select(CompetitionModel).where(
-            column("competition_description").contains(description)
+            col(CompetitionModel.competition_description).contains(description)
         )
     ).all()
+
+
+@router.get(
+    "/get_competitions_for_competitor",
+    summary="Gets the competitions where a competitor has taken part",
+)
+@try_endpoint
+async def get_competitions_for_competitor(
+    competitor_name: str, session: Session = Depends(get_db)
+) -> List[CompetitionModel]:
+    return await competitions_for_competitor(competitor_name, session)
