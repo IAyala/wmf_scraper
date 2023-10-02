@@ -18,6 +18,7 @@ class CompetitorResults(SQLModel):
 
 class CompetitionOverall(SQLModel):
     total_score: int = Field(nullable=False)
+    average_score: float = Field(nullable=False)
     total_competition_penalty: int = Field(nullable=False)
     total_task_penalty: int = Field(nullable=False)
     competitor_name: str = Field(nullable=False)

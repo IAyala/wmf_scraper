@@ -56,6 +56,7 @@ async def query_overall_results_for_competition(
             func.sum(TaskResultModel.tr_net_score).label("total_score"),  # type: ignore
             func.sum(TaskResultModel.tr_competition_penalty).label("total_competition_penalty"),  # type: ignore
             func.sum(TaskResultModel.tr_task_penalty).label("total_task_penalty"),  # type: ignore
+            func.count(TaskResultModel.task_id).label("number_tasks"),  # type: ignore
         )
         .join(TaskModel, TaskModel.task_id == TaskResultModel.task_id)
         .join(
@@ -73,6 +74,7 @@ async def query_overall_results_for_competition(
         result.append(
             CompetitionOverall(
                 total_score=elem.total_score,
+                average_score=round(elem.total_score / elem.number_tasks, 2),
                 total_competition_penalty=elem.total_competition_penalty,
                 total_task_penalty=elem.total_task_penalty,
                 competitor_name=elem.competitor_name,
