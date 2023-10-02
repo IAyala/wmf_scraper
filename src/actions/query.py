@@ -1,10 +1,10 @@
 from typing import List
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, func, select
 
 from models.competition import CompetitionModel
 from models.competitor import CompetitorModel
-from models.query import CompetitorResults
+from models.query import CompetitionOverall, CompetitorResults
 from models.task import TaskModel
 from models.task_result import TaskResultModel
 
@@ -43,3 +43,40 @@ async def query_result_for_competitor_in_competition(
         )
         for x in all_results
     ]
+
+
+async def query_overall_results_for_competition(
+    competition_id: int, session: Session
+) -> List[CompetitionOverall]:
+    result = []
+    all_results = session.exec(
+        select(
+            CompetitorModel.competitor_name,
+            CompetitorModel.competitor_country,
+            func.sum(TaskResultModel.tr_net_score).label("total_score"),  # type: ignore
+            func.sum(TaskResultModel.tr_competition_penalty).label("total_competition_penalty"),  # type: ignore
+            func.sum(TaskResultModel.tr_task_penalty).label("total_task_penalty"),  # type: ignore
+        )
+        .join(TaskModel, TaskModel.task_id == TaskResultModel.task_id)
+        .join(
+            CompetitionModel,
+            TaskModel.competition_id == CompetitionModel.competition_id,
+        )
+        .join(
+            CompetitorModel,
+            CompetitorModel.competitor_id == TaskResultModel.competitor_id,
+        )
+        .where(CompetitionModel.competition_id == competition_id)
+        .group_by(CompetitorModel.competitor_name)
+    ).all()
+    for elem in all_results:
+        result.append(
+            CompetitionOverall(
+                total_score=elem.total_score,
+                total_competition_penalty=elem.total_competition_penalty,
+                total_task_penalty=elem.total_task_penalty,
+                competitor_name=elem.competitor_name,
+                competitor_country=elem.competitor_country,
+            )
+        )
+    return sorted(result, key=lambda x: x.total_score, reverse=True)

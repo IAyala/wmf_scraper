@@ -14,3 +14,11 @@ class CompetitorResults(SQLModel):
     task_order: int = Field(nullable=False)
     task_name: str = Field(nullable=False)
     task_status: str = Field(nullable=False)
+
+
+class CompetitionOverall(SQLModel):
+    total_score: int = Field(nullable=False)
+    total_competition_penalty: int = Field(nullable=False)
+    total_task_penalty: int = Field(nullable=False)
+    competitor_name: str = Field(nullable=False)
+    competitor_country: str = Field(nullable=False)
