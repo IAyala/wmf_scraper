@@ -1,10 +1,15 @@
-from typing import List
+from typing import List, Optional
 
 from sqlmodel import Session, col, func, select
 
 from models.competition import CompetitionModel
 from models.competitor import CompetitorModel
-from models.query import CompetitionOverall, CompetitorResults
+from models.query import (
+    CompetitionOverall,
+    CompetitionOverallWithPosition,
+    CompetitorOverallByTask,
+    CompetitorResults,
+)
 from models.task import TaskModel
 from models.task_result import TaskResultModel
 
@@ -46,8 +51,8 @@ async def query_result_for_competitor_in_competition(
 
 
 async def query_overall_results_for_competition(
-    competition_id: int, session: Session
-) -> List[CompetitionOverall]:
+    competition_id: int, session: Session, up_to_task: Optional[int] = None
+) -> List[CompetitionOverallWithPosition]:
     result = []
     all_results = session.exec(
         select(
@@ -68,6 +73,9 @@ async def query_overall_results_for_competition(
             CompetitorModel.competitor_id == TaskResultModel.competitor_id,
         )
         .where(CompetitionModel.competition_id == competition_id)
+        .where(
+            TaskModel.task_order <= (up_to_task if up_to_task else 2 ^ 31)
+        )  # 2^31 are many tasks...
         .group_by(CompetitorModel.competitor_name)
     ).all()
     for elem in all_results:
@@ -81,4 +89,45 @@ async def query_overall_results_for_competition(
                 competitor_country=elem.competitor_country,
             )
         )
-    return sorted(result, key=lambda x: x.total_score, reverse=True)
+    return [
+        CompetitionOverallWithPosition(**res.dict(), position=pos + 1)
+        for pos, res in enumerate(
+            sorted(result, key=lambda x: x.total_score, reverse=True)
+        )
+    ]
+
+
+async def query_positions_by_competitor_in_competition(
+    competition_id: int, competitor_name: str, session: Session
+) -> CompetitorOverallByTask:
+    num_tasks = session.exec(
+        select(
+            func.count(TaskModel.task_id).label("number_tasks")  # type:ignore
+        )
+        .join(
+            CompetitionModel,
+            TaskModel.competition_id == CompetitionModel.competition_id,
+        )
+        .where(CompetitionModel.competition_id == competition_id)
+    ).first()
+    competitor = session.exec(
+        select(CompetitorModel).where(
+            col(CompetitorModel.competitor_name).contains(competitor_name)
+        )
+    ).one_or_none()
+    if num_tasks and num_tasks > 0 and competitor:
+        result = CompetitorOverallByTask(**competitor.dict())
+        for i in range(1, num_tasks + 1):
+            results_up_to_task_i = await query_overall_results_for_competition(
+                competition_id=competition_id, session=session, up_to_task=i
+            )
+            my_competitor_position = next(
+                filter(
+                    lambda x: x.competitor_name == competitor_name, results_up_to_task_i
+                )
+            )
+            result.competitor_positions.append(my_competitor_position.position)
+        return result
+    raise ValueError(
+        f"Competition with id {competition_id} does not exist, or competitor {competitor_name} does not exist..."
+    )

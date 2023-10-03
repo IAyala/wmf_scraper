@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlmodel import Field, SQLModel
 
 
@@ -23,3 +25,13 @@ class CompetitionOverall(SQLModel):
     total_task_penalty: int = Field(nullable=False)
     competitor_name: str = Field(nullable=False)
     competitor_country: str = Field(nullable=False)
+
+
+class CompetitionOverallWithPosition(CompetitionOverall):
+    position: int = Field(nullable=False)
+
+
+class CompetitorOverallByTask(SQLModel):
+    competitor_name: str = Field(nullable=False)
+    competitor_country: str = Field(nullable=False)
+    competitor_positions: List[int] = Field(default=[])
