@@ -18,6 +18,17 @@ class CompetitorResults(SQLModel):
     task_status: str = Field(nullable=False)
 
 
+class CountryResults(SQLModel):
+    competitor_country: str = Field(nullable=False)
+    number_competitors: int = Field(nullable=False)
+    total_points: int = Field(nullable=False)
+    average_score: float = Field(nullable=False)
+
+
+class CountryResultsWithPosition(CountryResults):
+    position: int = Field(nullable=False)
+
+
 class CompetitionOverall(SQLModel):
     total_score: int = Field(nullable=False)
     average_score: float = Field(nullable=False)

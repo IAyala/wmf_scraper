@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from actions.query import (
+    query_country_results_for_competition,
     query_overall_results_for_competition,
     query_positions_by_competitor_in_competition,
     query_result_for_competitor_in_competition,
@@ -14,6 +15,7 @@ from models.query import (
     CompetitionOverallWithPosition,
     CompetitorOverallByTask,
     CompetitorResults,
+    CountryResultsWithPosition,
 )
 
 router = APIRouter()
@@ -41,6 +43,19 @@ async def overall_results_competition(
     competition_id: int, session: Session = Depends(get_db)
 ) -> List[CompetitionOverallWithPosition]:
     return await query_overall_results_for_competition(
+        competition_id=competition_id, session=session
+    )
+
+
+@router.get(
+    "/overall_results_by_country",
+    summary="Country classification for a given competition",
+)
+@try_endpoint
+async def overall_results_by_country(
+    competition_id: int, session: Session = Depends(get_db)
+) -> List[CountryResultsWithPosition]:
+    return await query_country_results_for_competition(
         competition_id=competition_id, session=session
     )
 

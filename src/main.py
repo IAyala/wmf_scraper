@@ -15,15 +15,6 @@ app = FastAPI(
 
 add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")
 
-# TODO: The endpoints should be:
-# Load -> First purge competition, then scrape results
-# Competition -> add / remove / purge
-# Competitor -> add / remove
-# Task -> add / remove
-# TaskResult -> add / remove
-# Parser -> read tasks for competition / read task results for task (parallel)
-# Query -> Results by competitor in a competition
-
 app.include_router(version.router, prefix="/version", tags=["Version"])
 app.include_router(load.router, prefix="/load", tags=["Load"])
 app.include_router(query.router, prefix="/query", tags=["Query"])
