@@ -21,7 +21,6 @@ class CompetitorResults(SQLModel):
 class CountryResults(SQLModel):
     competitor_country: str = Field(nullable=False)
     number_competitors: int = Field(nullable=False)
-    total_points: int = Field(nullable=False)
     average_score: float = Field(nullable=False)
 
 

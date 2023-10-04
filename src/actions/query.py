@@ -151,7 +151,6 @@ async def query_country_results_for_competition(
         result.append(
             CountryResults(
                 competitor_country=elem.competitor_country,
-                total_points=elem.total_score,
                 number_competitors=elem.number_competitors,
                 average_score=round(elem.total_score / elem.number_tasks, 2),
             )
