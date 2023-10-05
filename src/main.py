@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.timing import add_timing_middleware
 from loguru import logger
 
@@ -11,6 +12,15 @@ app = FastAPI(
     title="WMF_Scraper",
     description="This is a REST API to retrieve competition results from WatchMeFly website",
     version=get_version(),
+)
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 add_timing_middleware(app, record=logger.debug, prefix="app", exclude="untimed")

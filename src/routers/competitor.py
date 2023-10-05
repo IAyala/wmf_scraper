@@ -8,7 +8,7 @@ from actions.competition import the_competition
 from actions.competitor import preprocess_competitors
 from actions.utilities import try_endpoint
 from database import get_db
-from models.competitor import CompetitorModel
+from models.competitor import CompetitorModel, CountryModel
 
 router = APIRouter()
 
@@ -40,6 +40,24 @@ async def add_competitors_in_competition(
     )
     competitors = get_competitor_data(competition_to_parse)
     return preprocess_competitors(competitors, session=session)
+
+
+@router.get(
+    "/get_countries_in_competition",
+    summary="Which countries participate in a competition",
+)
+@try_endpoint
+async def get_countries_in_competition(
+    competition_id: int, session: Session = Depends(get_db)
+) -> List[CountryModel]:
+    competition_to_parse = await the_competition(
+        competition_id=competition_id, session=session
+    )
+    competitors = get_competitor_data(competition_to_parse)
+    return [
+        CountryModel(competitor_country=x)
+        for x in list(set([x.competitor_country for x in competitors]))
+    ]
 
 
 @router.get(
