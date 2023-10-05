@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]
 ------------
 
+[0.1.2] - 2023-10-05
+------------
+CORS issue resolved. A couple of new endpoints added
+
 [0.1.1] - 2023-09-27
 ------------
 We are now able to load task results in parallel after a big refactoring. It takes 40 seconds to load 16 competitions
@@ -48,7 +52,8 @@ Minor bugs fixed. Tests added. Coverage 100%. Ready to go
 ------------
 First version, with the skeleton of the project ready to go
 
-[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.1.1...master
+[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v0.1.2...master
+[0.1.2]: https://github.com/IAyala/wmf_scraper/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/IAyala/wmf_scraper/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/IAyala/wmf_scraper/compare/v0.0.6...v0.1.0
 [0.0.6]: https://github.com/IAyala/wmf_scraper/compare/v0.0.5...v0.0.6

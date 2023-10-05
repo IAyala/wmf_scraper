@@ -1,7 +1,7 @@
 [project]
 name = "WMF_Scraper"
-version = "0.1.1"
-docker_image_version = "0.1.3"
+version = "0.1.2"
+docker_image_version = "0.1.4"
 description = "This is a FASTAPI REST API to obtain and analyse HAB results from WMF"
 requires-python = ">=3.9,<4"
 keywords = ["Ballooning Results", "WatchMeFly"]
@@ -15,7 +15,7 @@ maintainers = [
 
 [tool.poetry]
 name = "WMF_Scraper"
-version = "0.1.1"
+version = "0.1.2"
 description = "This is a FASTAPI REST API to obtain and analyse HAB results from WMF"
 authors = ["Ivan Ayala"]
 packages = [
