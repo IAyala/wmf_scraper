@@ -27,6 +27,25 @@ async def get_competitors(
     return get_competitor_data(competition_to_parse)
 
 
+@router.get(
+    "/get_competitors_in_competition_by_country",
+    summary="Get competitors that take part in a competition that are from a certain country",
+)
+@try_endpoint
+async def get_competitors_in_competition_by_country(
+    competition_id: int, country_name: str, session: Session = Depends(get_db)
+) -> List[CompetitorModel]:
+    competition_to_parse = await the_competition(
+        competition_id=competition_id, session=session
+    )
+    return list(
+        filter(
+            lambda x: x.competitor_country == country_name,
+            get_competitor_data(competition_to_parse),
+        )
+    )
+
+
 @router.post(
     "/add_competitors_in_competition",
     summary="Add a new competitor",

@@ -29,7 +29,9 @@ def get_tasks_data(the_competition: CompetitionModel) -> List[TaskModel]:
         task_url = task_info.get("href")
         data_to_process = first_text(task_info.findall(".//h7[@class='mb-0']"))
         task_order, task_name = task_order_and_name_from_string(data_to_process)
-        task_status = first_text(task_info.findall(r".//div[@class='ms-auto']/h7"))
+        task_status = first_text(
+            task_info.findall(r".//div[@class='ms-auto']/h7")
+        ).strip()
         result.append(
             TaskModel(
                 task_url=f"{URL_PREFIX}/{task_url}",
