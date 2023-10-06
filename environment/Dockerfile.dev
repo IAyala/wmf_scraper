@@ -157,16 +157,20 @@ RUN apt install -y wget \
 ADD ./environment/.bashrc ${HOME}/.bashrc
 ADD ./environment/.bashrc /root/.bashrc
 ADD ./environment/init.sh ${HOME}/init.sh
+ADD ./environment/init_server.sh ${HOME}/init_server.sh
 ADD ./pyproject.toml ${HOME}/pyproject.toml
 ADD ./scripts/bash_utils.sh ${HOME}/source/scripts/bash_utils.sh
 ADD ./scripts/bash_functions.sh ${HOME}/source/scripts/bash_functions.sh
 RUN find ${HOME} -print0 | xargs -0 -n 1 -P 8 chown coder:coder || true
 RUN chmod +x ${HOME}/init.sh \
+    && chmod +x ${HOME}/init_server.sh \
     && chmod +x /root/.bashrc \
     && chmod +x ${HOME}/source/scripts/bash_utils.sh \
     && chmod +x ${HOME}/source/scripts/bash_functions.sh \
     && sed -i 's/\r$//' ${HOME}/.bashrc \
     && sed -i 's/\r$//' ${HOME}/init.sh \
-    && chown coder:coder ${HOME}/init.sh
+    && sed -i 's/\r$//' ${HOME}/init_server.sh \
+    && chown coder:coder ${HOME}/init.sh \
+    && chown coder:coder ${HOME}/init_server.sh
 
 WORKDIR ${HOME}/source
