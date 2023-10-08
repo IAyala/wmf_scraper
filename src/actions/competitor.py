@@ -19,7 +19,7 @@ def preprocess_competitors(
             session.add(competitor)
             updated_competitor = session.exec(query).one()
             logger.debug(
-                f"Competitor {updated_competitor.competitor_id} added: {updated_competitor.competitor_name} from {updated_competitor.competitor_country}"
+                f"Competitor {updated_competitor.competitor_id} added: {competitor.competitor_name.strip()} from {competitor.competitor_country}"
             )
         else:
             updated_competitor = session.exec(query).one()

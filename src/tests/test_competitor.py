@@ -73,7 +73,10 @@ def test_add_competitors(
 
 @pytest.mark.parametrize(
     "user_data_to_add, html_file",
-    [(ONE_COMPETITION_DUMMY_DATA, get_test_files(DATA_TESTS_FOLDER, TESTS_TO_RUN)[-1])],
+    [
+        (ONE_COMPETITION_DUMMY_DATA, x)
+        for x in get_test_files(DATA_TESTS_FOLDER, "**/DutchBalloonTrophy_2023.html")
+    ],
 )
 def test_add_competitors_already_added(
     test_client, user_data_to_add, html_file, mocker: MockerFixture, caplog
