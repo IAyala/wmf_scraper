@@ -207,7 +207,7 @@ async def query_positions_by_competitor_in_competition(
     ).first()
     competitor = session.exec(
         select(CompetitorModel).where(
-            col(CompetitorModel.competitor_name).contains(competitor_name)
+            CompetitorModel.competitor_name == competitor_name
         )
     ).one_or_none()
     if num_tasks and num_tasks > 0 and competitor:
