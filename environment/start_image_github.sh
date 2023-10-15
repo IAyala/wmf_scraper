@@ -8,7 +8,7 @@ run () {
 	docker run -d -t \
 		--name wmf_scraper \
 		-v ${current_dir}/../:/home/coder/source \
-		wmf_scraper:0.2.2
+		wmf_scraper:1.0.0
 	popd > /dev/null
 }
 
