@@ -1,7 +1,16 @@
+import os
+import certifi
+import ssl
+
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from lxml import html
+
+# Set the SSL_CERT_FILE environment variable to certifi's CA bundle
+os.environ['SSL_CERT_FILE'] = certifi.where()
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 URL_PREFIX = "https://www.watchmefly.net/events"
 
