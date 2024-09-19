@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, col, func, select, or_
 
 from models.competition import CompetitionModel
 from models.competitor import CompetitorModel
@@ -11,6 +11,7 @@ from models.query import (
     CompetitorResults,
     CountryResults,
     CountryResultsWithPosition,
+    RFSPenaltiesByCompetition
 )
 from models.task import TaskModel
 from models.task_result import TaskResultModel
@@ -189,6 +190,42 @@ async def query_overall_results_for_competition(
         for pos, res in enumerate(
             sorted(result, key=lambda x: x.total_score, reverse=True)
         )
+    ]
+
+
+async def query_rfs_penalties_in_competition(
+    competition_id: int, session: Session
+) -> List[RFSPenaltiesByCompetition]:
+    all_results = session.exec(
+        select(TaskModel, TaskResultModel, CompetitionModel, CompetitorModel)
+        .join(TaskResultModel, TaskResultModel.task_id == TaskModel.task_id)
+        .join(
+            CompetitionModel,
+            TaskModel.competition_id == CompetitionModel.competition_id,
+        )
+        .join(
+            CompetitorModel,
+            CompetitorModel.competitor_id == TaskResultModel.competitor_id,
+        )
+        .where(CompetitionModel.competition_id == competition_id)
+        .where(
+            or_(
+                col(TaskResultModel.tr_notes).contains("10."),
+                # col(TaskResultModel.tr_notes).contains("10.3")
+            )
+        )
+    ).all()
+    return [
+        RFSPenaltiesByCompetition(
+            competitor_name=competitor.competitor_name,
+            competitor_country=competitor.competitor_country,
+            task_number=task.task_order,
+            task_description=task.task_name,
+            task_penalty=task_result.tr_task_penalty,
+            competition_penalty=task_result.tr_competition_penalty,
+            notes=task_result.tr_notes,
+        )
+        for task, task_result, _, competitor in all_results
     ]
 
 

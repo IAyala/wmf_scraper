@@ -8,6 +8,7 @@ from actions.query import (
     query_overall_results_for_competition,
     query_positions_by_competitor_in_competition,
     query_result_for_competitor_in_competition,
+    query_rfs_penalties_in_competition
 )
 from actions.utilities import try_endpoint
 from database import get_db
@@ -16,6 +17,7 @@ from models.query import (
     CompetitorOverallByTask,
     CompetitorResults,
     CountryResultsWithPosition,
+    RFSPenaltiesByCompetition
 )
 
 router = APIRouter()
@@ -70,4 +72,17 @@ async def position_path_in_competition(
 ) -> CompetitorOverallByTask:
     return await query_positions_by_competitor_in_competition(
         competition_id=competition_id, competitor_name=competitor_name, session=session
+    )
+
+
+@router.get(
+    "/rfs_penalties",
+    summary="RFS penalties for a given competition",
+)
+@try_endpoint
+async def rfs_penalties(
+    competition_id: int, session: Session = Depends(get_db)
+) -> List[RFSPenaltiesByCompetition]:
+    return await query_rfs_penalties_in_competition(
+        competition_id=competition_id, session=session
     )

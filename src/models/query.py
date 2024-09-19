@@ -45,3 +45,13 @@ class CompetitorOverallByTask(SQLModel):
     competitor_name: str = Field(nullable=False)
     competitor_country: str = Field(nullable=False)
     competitor_positions: List[int] = Field(default=[])
+
+
+class RFSPenaltiesByCompetition(SQLModel):
+    competitor_name: str = Field(nullable=False)
+    competitor_country: str = Field(nullable=False)
+    task_number: int = Field(nullable=False)
+    task_description: str = Field(nullable=False)
+    task_penalty: int = Field(nullable=False)
+    competition_penalty: int = Field(nullable=False)
+    notes: str = Field()
