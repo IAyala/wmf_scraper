@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.2
+
 FROM debian:11-slim
 
 # GENERAL PURPOSE ENV VARIABLES
@@ -58,6 +60,11 @@ RUN apt-get update -y \
         gnupg \
         lsb-release \
         sqlite3
+
+RUN --mount=type=secret,id=my_ssh_key \
+    mkdir -p ~/.ssh && \
+    cp /run/secrets/my_ssh_key ~/.ssh/id_rsa && \
+    chmod 600 ~/.ssh/id_rsa
 
 # Code Server
 ADD ./environment/code-server-config.yaml ${HOME}/.config/code-server/config.yaml
