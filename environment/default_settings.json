@@ -20,8 +20,6 @@
   "git.enableSmartCommit": true,
   "http.proxyStrictSSL": false,
   "markdown.preview.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace",
-  "python.defaultInterpreterPath": "/home/coder/.pyenv/versions/3.11.5/bin/python",
-  "python.linting.mypyEnabled": true,
   "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
   "workbench.iconTheme": "vs-seti",
   "workbench.startupEditor": "none"

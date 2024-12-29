@@ -10,7 +10,7 @@ run () {
 		--name wmf_scraper \
 		-p 8888:8888 \
 		-p 8000:8000 \
-		-v $(realpath "${current_dir}/../"):/home/coder/source \
+		--mount type=bind,source=$(realpath "${current_dir}/../"),target=/home/coder/source \
 		--entrypoint /home/coder/init.sh \
 		wmf_scraper:1.0.0
 	popd > /dev/null

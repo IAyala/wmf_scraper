@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1.2
-
 FROM debian:11-slim
+
+ARG SSH_KEY
 
 # GENERAL PURPOSE ENV VARIABLES
 ENV HOME /home/coder
@@ -61,11 +61,6 @@ RUN apt-get update -y \
         lsb-release \
         sqlite3
 
-RUN --mount=type=secret,id=my_ssh_key \
-    mkdir -p ~/.ssh && \
-    cp /run/secrets/my_ssh_key ~/.ssh/id_rsa && \
-    chmod 600 ~/.ssh/id_rsa
-
 # Code Server
 ADD ./environment/code-server-config.yaml ${HOME}/.config/code-server/config.yaml
 ADD ./environment/default_settings.json ${HOME}/.local/share/code-server/Machine/settings.json
@@ -82,7 +77,15 @@ RUN apt-get --allow-unauthenticated update \
       -o code-server_${CODE_SERVER_VERSION}_amd64.deb \
     && dpkg -i code-server_${CODE_SERVER_VERSION}_amd64.deb \
     && mkdir -p ${HOME}/.local/share/code-server/User/ \
-    && echo '{"http.proxyStrictSSL": false,"svg.preview.autoShow": true,"svg.preview.mode": "svg","svg.preview.background": "white"}' >> ${HOME}/.local/share/code-server/User/settings.json
+    && echo '{' \
+        '"http.proxyStrictSSL": false,' \
+        '"svg.preview.autoShow": true,' \
+        '"svg.preview.mode": "svg",' \
+        '"svg.preview.background": "white",' \
+        '"python.pythonPath": "'"$HOME"'/.pyenv/versions/'"$PYTHON_VERSION"'/bin/python",' \
+        '"python.defaultInterpreterPath": "'"$HOME"'/.pyenv/versions/'"$PYTHON_VERSION"'/bin/python"' \
+        '}' \
+        >> "${HOME}/.local/share/code-server/User/settings.json"
 
 # File Watchers
 RUN echo "fs.inotify.max_user_instances=524288" >> /etc/sysctl.conf \
@@ -93,7 +96,6 @@ RUN echo "fs.inotify.max_user_instances=524288" >> /etc/sysctl.conf \
 RUN code-server --install-extension ms-python.python \
     && code-server --install-extension mhutchie.git-graph \
     && code-server --install-extension streetsidesoftware.code-spell-checker \
-    && code-server --install-extension sourcegraph.cody-ai \
     && code-server --install-extension ms-pyright.pyright \
     && code-server --install-extension charliermarsh.ruff \
     && code-server --install-extension technicolor-creamsicle.deepdark-material \
@@ -160,6 +162,12 @@ RUN apt install -y wget \
     && tar -xvf gcm-linux_amd64.${CREDENTIALS_MANAGER_VERSION}.tar.gz \
     && su coder -c "/opt/credentials-manager/git-credential-manager configure" \
     && su coder -c "git config --global credential.credentialStore plaintext"
+
+# SSH Key
+RUN mkdir -p ~/.ssh && \
+    sh -c 'echo "$SSH_KEY" > ~/.ssh/id_rsa' && \
+    chmod 600 ~/.ssh/id_rsa && \
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
 
 # Setting user ownership and switching user
 ADD ./environment/.bashrc ${HOME}/.bashrc
