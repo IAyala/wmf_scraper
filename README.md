@@ -28,7 +28,7 @@
 
 * Clone the repository **in WSL**
 ```
-git clone --depth=1 https://github.com/IAyala/wmf_scraper.git
+git clone --depth=1 git@github.com:IAyala/wmf_scraper.git
 ```
 
 Usage
