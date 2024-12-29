@@ -12,7 +12,7 @@ run () {
 		-p 8000:8000 \
 		--mount type=bind,source=$(realpath "${current_dir}/../"),target=/home/coder/source \
 		--entrypoint /home/coder/init.sh \
-		wmf_scraper:1.1.1
+		wmf_scraper:1.1.2
 	popd > /dev/null
 }
 

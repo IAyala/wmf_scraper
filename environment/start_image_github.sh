@@ -8,7 +8,7 @@ run () {
 	docker run -d -t \
 		--name wmf_scraper \
 		--mount type=bind,source=$(realpath "${current_dir}/../"),target=/home/coder/source \
-		wmf_scraper:1.1.1
+		wmf_scraper:1.1.2
 	popd > /dev/null
 }
 
