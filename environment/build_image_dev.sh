@@ -7,7 +7,7 @@ run () {
 	buildkit_progress=plain docker build \
 	  -f Dockerfile.dev \
 	  --build-arg SSH_KEY="$(cat ${HOME}/.ssh/id_rsa)" \
-	  -t wmf_scraper:1.0.0 \
+	  -t wmf_scraper:1.1.1 \
 	  --progress=plain \
 	  ..
 	popd > /dev/null
