@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlmodel import Session, col, func, select, or_
+from sqlmodel import Session, col, func, or_, select
 
 from models.competition import CompetitionModel
 from models.competitor import CompetitorModel
@@ -11,7 +11,7 @@ from models.query import (
     CompetitorResults,
     CountryResults,
     CountryResultsWithPosition,
-    RFSPenaltiesByCompetition
+    RFSPenaltiesByCompetition,
 )
 from models.task import TaskModel
 from models.task_result import TaskResultModel

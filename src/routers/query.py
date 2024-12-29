@@ -8,7 +8,7 @@ from actions.query import (
     query_overall_results_for_competition,
     query_positions_by_competitor_in_competition,
     query_result_for_competitor_in_competition,
-    query_rfs_penalties_in_competition
+    query_rfs_penalties_in_competition,
 )
 from actions.utilities import try_endpoint
 from database import get_db
@@ -17,7 +17,7 @@ from models.query import (
     CompetitorOverallByTask,
     CompetitorResults,
     CountryResultsWithPosition,
-    RFSPenaltiesByCompetition
+    RFSPenaltiesByCompetition,
 )
 
 router = APIRouter()
