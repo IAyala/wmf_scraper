@@ -40,7 +40,7 @@ def test_competition_add_one(test_client, user_data_list, expected_status_code):
 def test_competition_add_many(test_client, user_data_list, expected_status_code):
     for user_data, expected_status in zip(user_data_list, expected_status_code):
         response = test_client.post(
-            "/competition/add_many", json=[x.dict() for x in user_data]
+            "/competition/add_many", json=[x.model_dump() for x in user_data]
         )
         assert response.status_code == expected_status
         assert len(response.json()) == len(user_data)

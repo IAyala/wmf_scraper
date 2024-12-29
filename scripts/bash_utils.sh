@@ -58,7 +58,7 @@ source_image_version() {
 	print_color "pyproject.toml file does not exist. Setting IMAGE_VERSION to 0.0.0" $COLOR_RED
 	export IMAGE_VERSION=0.0.0
     else
-	IMAGE_VERSION=$(cat pyproject.toml | grep -m 1 'docker_image_version' | awk '{print $3}' | tr '"' ' ' | awk '{print $1}')
+	IMAGE_VERSION=$(cat pyproject.toml | grep -m 1 'version' | awk '{print $3}' | tr '"' ' ' | awk '{print $1}')
 	print_color "export IMAGE_VERSION=$IMAGE_VERSION" $COLOR_YELLOW
 	export IMAGE_VERSION=$IMAGE_VERSION
     fi
