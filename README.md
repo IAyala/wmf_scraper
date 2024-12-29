@@ -41,7 +41,7 @@ The project includes an integrated environment that includes all you need to dev
 Run the following commands in the root folder:
 
 ```bash
-$ ./environment/build_image.sh
+$ ./environment/build_image_dev.sh
 $ ./environment/start_image_dev.sh
 ```
 

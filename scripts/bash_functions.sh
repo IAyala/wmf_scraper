@@ -25,10 +25,6 @@ print_color "Adding 'bump_version' function to bash" $COLOR_PINK
 bump_version () {
     ${HOME}/source/scripts/run_bump.sh $@
 }
-print_color "Adding 'bump_image_version' function to bash" $COLOR_PINK
-bump_image_version () {
-    ${HOME}/source/scripts/run_bump.sh docker $@
-}
 print_color "Adding 'help' function to bash" $COLOR_PINK
 help () {
     ${HOME}/source/scripts/run_help.sh $@

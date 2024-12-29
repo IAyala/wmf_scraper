@@ -12,7 +12,6 @@ print_general_help() {
     print_color "test                 Prints the test function help" $COLOR_YELLOW
     print_color "precommit            Prints the precommit function help" $COLOR_YELLOW
     print_color "bump_version         Bumps version and creates tag" $COLOR_YELLOW
-    print_color "bump_image_version   Bumps docker image version" $COLOR_YELLOW
     echo
 }
 
