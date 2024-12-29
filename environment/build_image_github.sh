@@ -6,7 +6,7 @@ run () {
 	pushd $current_dir > /dev/null
 	buildkit_progress=plain docker build \
 	  -f Dockerfile.dev \
-	  --build-arg SSH_KEY="${{ secrets.MY_SSH_KEY }}" \
+	  --build-arg SSH_KEY="$SSH_KEY" \
 	  -t wmf_scraper:1.0.0 \
 	  --progress=plain \
 	  ..

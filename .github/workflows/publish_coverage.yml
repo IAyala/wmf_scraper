@@ -32,6 +32,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Docker image
+        env:
+          SSH_KEY: ${{ secrets.MY_SSH_KEY }}
         run: environment/build_image_github.sh
       - name: Run Docker Container
         run: environment/start_image_github.sh
