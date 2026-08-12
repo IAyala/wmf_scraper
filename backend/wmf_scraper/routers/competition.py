@@ -6,6 +6,7 @@ from wmf_scraper.actions.competition import (
     competitions_for_competitor,
     remove_related_competition_objects,
     the_competition,
+    update_one_competition_helper,
 )
 from wmf_scraper.actions.utilities import try_endpoint
 from wmf_scraper.database import get_db
@@ -53,7 +54,23 @@ async def add_many(
     return result
 
 
-@router.post("/remove_one", summary="Remove one competition to the scraper")
+@router.post("/update_one", summary="Update a competition's description and URL")
+@try_endpoint
+async def update_one(
+    competition_id: int,
+    req: CompetitionRequest,
+    session: Session = Depends(get_db),
+    _: User = Depends(require_superadmin),
+) -> CompetitionModel:
+    return await update_one_competition_helper(
+        competition_id=competition_id,
+        competition_description=req.competition_description,
+        competition_url=req.competition_url,
+        session=session,
+    )
+
+
+@router.post("/remove_one", summary="Remove a competition and everything loaded for it")
 @try_endpoint
 async def remove_one(
     competition_id: int,

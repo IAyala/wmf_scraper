@@ -89,17 +89,6 @@ def get_expected_task_results(path: Path) -> ExpectedTaskResults:
     return ExpectedTaskResults(**json.loads(path_to_read_expected(path).read_text()))
 
 
-@pytest.fixture(scope="function")
-def anonymous_client():
-    """Client backed by the in-memory test database, with no session."""
-    create_db_if_not_exists(is_test=True)
-    app.dependency_overrides[get_db] = get_test_db
-    with TestClient(app) as client:
-        yield client
-    app.dependency_overrides.clear()
-    drop_test_db()
-
-
 def _login(client: TestClient, role: str) -> TestClient:
     response = client.post(
         f"{API}/auth/login",
@@ -113,15 +102,47 @@ def _login(client: TestClient, role: str) -> TestClient:
 
 
 @pytest.fixture(scope="function")
-def test_client(anonymous_client):
-    """Client logged in as superadmin. The default for most tests."""
-    return _login(anonymous_client, "superadmin")
+def clients():
+    """Factory for independent clients sharing one in-memory test database.
+
+    A test that needs two roles at once must get two separate clients: sessions
+    live in a cookie jar, so logging in twice on one client would just replace
+    the first session.
+    """
+    create_db_if_not_exists(is_test=True)
+    app.dependency_overrides[get_db] = get_test_db
+    opened: list[TestClient] = []
+
+    def make(role: str | None = None) -> TestClient:
+        client = TestClient(app)
+        client.__enter__()
+        opened.append(client)
+        return _login(client, role) if role else client
+
+    yield make
+
+    for client in opened:
+        client.__exit__(None, None, None)
+    app.dependency_overrides.clear()
+    drop_test_db()
 
 
 @pytest.fixture(scope="function")
-def admin_client(anonymous_client):
+def anonymous_client(clients):
+    """Client backed by the in-memory test database, with no session."""
+    return clients()
+
+
+@pytest.fixture(scope="function")
+def test_client(clients):
+    """Client logged in as superadmin. The default for most tests."""
+    return clients("superadmin")
+
+
+@pytest.fixture(scope="function")
+def admin_client(clients):
     """Client logged in as admin, i.e. without write permissions."""
-    return _login(anonymous_client, "admin")
+    return clients("admin")
 
 
 @pytest.fixture(scope="function", autouse=True)

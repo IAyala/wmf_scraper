@@ -4,6 +4,7 @@ import AddCompetition from "./components/AddCompetition";
 import CompetitionByCountry from "./components/CompetitionByCountry";
 import CompetitionOveralls from "./components/CompetitionOveralls";
 import CompetitorPath from "./components/CompetitorPath";
+import EditCompetitions from "./components/EditCompetitions";
 import LoadCompetition from "./components/LoadCompetition";
 import Login from "./components/Login";
 import Navbar from "./components/NavBar";
@@ -55,6 +56,7 @@ function App() {
           <>
             <Route path={"/add_competition"} element={<AddCompetition />} />
             <Route path={"/load_competition"} element={<LoadCompetition />} />
+            <Route path={"/edit_competitions"} element={<EditCompetitions />} />
           </>
         )}
         <Route path={"/overalls"} element={<CompetitionOveralls />} />

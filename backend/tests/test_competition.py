@@ -106,3 +106,88 @@ def test_competition_get_by_desc(test_client, user_data_to_add, desc_to_find, ex
     )
     assert response.status_code == 200
     assert len(response.json()) == expected_len_result
+
+
+EDITED = {
+    "competition_description": "Renamed Competition",
+    "competition_url": "https://watchmefly.net/events/event.php?e=renamed&v=tt",
+}
+
+
+def test_competition_update_one(test_client):
+    add_user_data_and_assert(ONE_COMPETITION_DUMMY_DATA, test_client, [200])
+
+    response = test_client.post(f"{API}/competition/update_one", params={"competition_id": 1}, json=EDITED)
+    assert response.status_code == 200
+    assert response.json()["competition_description"] == EDITED["competition_description"]
+    assert response.json()["competition_url"] == EDITED["competition_url"]
+
+    stored = test_client.get(f"{API}/competition/get_all_competitions").json()
+    assert [c["competition_description"] for c in stored] == [EDITED["competition_description"]]
+
+
+def test_competition_update_unknown_id(test_client):
+    response = test_client.post(f"{API}/competition/update_one", params={"competition_id": 99}, json=EDITED)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Competition ID: 99 not found"
+
+
+@pytest.mark.parametrize("clashing_field", ["competition_description", "competition_url"])
+def test_competition_update_rejects_a_duplicate(test_client, clashing_field):
+    """Both fields are unique, so renaming onto another competition must fail."""
+    add_user_data_and_assert(user_data_to_add, test_client, [200, 200])
+
+    payload = {**EDITED, clashing_field: getattr(user_data_to_add[1], clashing_field)}
+    response = test_client.post(f"{API}/competition/update_one", params={"competition_id": 1}, json=payload)
+    assert response.status_code == 400
+    assert "already uses that" in response.json()["detail"]
+
+
+def test_competition_update_requires_superadmin(admin_client, test_client):
+    add_user_data_and_assert(ONE_COMPETITION_DUMMY_DATA, test_client, [200])
+    response = admin_client.post(f"{API}/competition/update_one", params={"competition_id": 1}, json=EDITED)
+    assert response.status_code == 403
+
+
+def test_competition_remove_requires_superadmin(admin_client, test_client):
+    add_user_data_and_assert(ONE_COMPETITION_DUMMY_DATA, test_client, [200])
+    response = admin_client.post(f"{API}/competition/remove_one", params={"competition_id": 1})
+    assert response.status_code == 403
+
+
+def test_competition_remove_deletes_tasks_and_results(test_client):
+    """Removing a competition must take its whole subtree with it."""
+    from sqlmodel import select
+
+    from wmf_scraper.database import get_test_db
+    from wmf_scraper.models.task import TaskModel
+    from wmf_scraper.models.task_result import TaskResultModel
+
+    add_user_data_and_assert(ONE_COMPETITION_DUMMY_DATA, test_client, [200])
+    session = next(get_test_db())
+    task = TaskModel(competition_id=1, task_url="u", task_name="Fly In", task_status="Final", task_order=1)
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+    session.add(
+        TaskResultModel(
+            task_id=task.task_id,
+            competitor_id=1,
+            tr_result="1.0",
+            tr_gross_score=1000,
+            tr_task_penalty=0,
+            tr_competition_penalty=0,
+            tr_net_score=1000,
+            tr_notes="",
+        )
+    )
+    session.commit()
+
+    response = test_client.post(f"{API}/competition/remove_one", params={"competition_id": 1})
+    assert response.status_code == 200
+    assert response.json()["number_tasks_removed"] == 1
+    assert response.json()["number_task_results_removed"] == 1
+
+    assert test_client.get(f"{API}/competition/get_all_competitions").json() == []
+    assert session.exec(select(TaskModel)).all() == []
+    assert session.exec(select(TaskResultModel)).all() == []

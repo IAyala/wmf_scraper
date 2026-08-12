@@ -24,6 +24,40 @@ async def add_one_competition_helper(
     return to_add
 
 
+async def update_one_competition_helper(
+    competition_id: int,
+    competition_url: str,
+    competition_description: str,
+    session: Session,
+) -> CompetitionModel:
+    """Rename a competition or point it at a different URL.
+
+    Stored tasks and results are left alone: the usual reason to edit a URL is
+    to correct it, and throwing the results away on a typo fix would be worse
+    than leaving them until the next load.
+    """
+    to_update = await the_competition(competition_id=competition_id, session=session)
+
+    for field, value in (
+        ("competition_description", competition_description),
+        ("competition_url", competition_url),
+    ):
+        clash = session.exec(
+            select(CompetitionModel)
+            .where(getattr(CompetitionModel, field) == value)
+            .where(CompetitionModel.competition_id != competition_id)
+        ).first()
+        if clash is not None:
+            raise ValueError(f"Another competition already uses that {field.replace('_', ' ')}: {value}")
+
+    to_update.competition_description = competition_description
+    to_update.competition_url = competition_url
+    session.add(to_update)
+    session.commit()
+    session.refresh(to_update)
+    return to_update
+
+
 async def remove_related_competition_objects(competition_id: int, session: Session) -> CompetitionPurgeResponse:
     n_tasks = n_task_results = 0
     for task in session.exec(select(TaskModel).where(TaskModel.competition_id == competition_id)).all():

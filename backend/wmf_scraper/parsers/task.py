@@ -1,9 +1,11 @@
 import re
 
+from lxml.html import HtmlElement
+
 from wmf_scraper.actions.utilities import optional_to_int_fallback_0
 from wmf_scraper.models.competition import CompetitionModel
 from wmf_scraper.models.task import TaskModel
-from wmf_scraper.parsers.utilities import URL_PREFIX, html_from_url
+from wmf_scraper.parsers.utilities import URL_PREFIX, html_from_url, results_url
 
 
 def task_order_and_name_from_string(the_data: str) -> tuple[int, str]:
@@ -14,21 +16,30 @@ def task_order_and_name_from_string(the_data: str) -> tuple[int, str]:
     raise ValueError(f"Not possible to extract Task ID and name from: {the_data}")
 
 
-def first_text(elements: list) -> str:
-    return elements[0].text
+def first_text(elements: list) -> str | None:
+    """Text of the first element, or None when there is no such element."""
+    return elements[0].text if elements else None
+
+
+def _task_title(task_info: HtmlElement) -> str | None:
+    return first_text(task_info.findall(".//h7[@class='mb-0']"))
 
 
 def get_tasks_data(the_competition: CompetitionModel) -> list[TaskModel]:
     is_last: bool = False
     result = []
-    page = html_from_url(the_competition.competition_url)
+    page = html_from_url(results_url(the_competition.competition_url))
     for task_info in page.findall(".//a[@class='text-black']"):
+        title = _task_title(task_info)
+        if title is None:
+            # Not a task card. The event page reuses this class for links such
+            # as "Go To Noticeboard".
+            continue
         if task_info.getnext() is not None and task_info.getnext().tag == "h5":
             is_last = True
         task_url = task_info.get("href")
-        data_to_process = first_text(task_info.findall(".//h7[@class='mb-0']"))
-        task_order, task_name = task_order_and_name_from_string(data_to_process)
-        task_status = first_text(task_info.findall(r".//div[@class='ms-auto']/h7")).strip()
+        task_order, task_name = task_order_and_name_from_string(title)
+        task_status = (first_text(task_info.findall(r".//div[@class='ms-auto']/h7")) or "").strip()
         result.append(
             TaskModel(
                 task_url=f"{URL_PREFIX}/{task_url}",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import Select, { SingleValue } from "react-select";
+import { SingleValue } from "react-select";
+import AppSelect from "./AppSelect";
 import { api } from "../config/api";
 import DataTable, { IColumn } from "./DataTable";
 import FilterCard, { FilterField } from "./FilterCard";
@@ -107,7 +108,7 @@ export default function RFSPenalties() {
 
       <FilterCard>
         <FilterField label="Competition" className="col-12">
-          <Select options={options} onChange={handleChange} placeholder="Select a competition..." />
+          <AppSelect options={options} onChange={handleChange} placeholder="Select a competition..." />
         </FilterField>
       </FilterCard>
 

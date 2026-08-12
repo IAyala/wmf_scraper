@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import Select, { SingleValue } from "react-select";
+import { SingleValue } from "react-select";
+import AppSelect from "./AppSelect";
 import { api } from "../config/api";
 import DataTable, { IColumn } from "./DataTable";
 import FilterCard, { FilterField } from "./FilterCard";
@@ -171,14 +172,14 @@ export default function TasksResultsCompetitor() {
 
       <FilterCard>
         <FilterField label="Competition" className="col-12 col-lg-4">
-          <Select
+          <AppSelect
             options={optionsCompetition}
             onChange={handleChangeCompetition}
             placeholder="Select a competition..."
           />
         </FilterField>
         <FilterField label="Country" className="col-12 col-md-6 col-lg-4">
-          <Select
+          <AppSelect
             options={optionsCountry}
             onChange={handleChangeCountry}
             isDisabled={!optionsCountry}
@@ -186,7 +187,7 @@ export default function TasksResultsCompetitor() {
           />
         </FilterField>
         <FilterField label="Competitor" className="col-12 col-md-6 col-lg-4">
-          <Select
+          <AppSelect
             options={optionsCompetitor}
             onChange={handleChangeCompetitor}
             isDisabled={!optionsCompetitor}

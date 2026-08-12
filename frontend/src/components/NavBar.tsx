@@ -23,6 +23,7 @@ const VIEW_LINKS: ILink[] = [
 const MANAGE_LINKS: ILink[] = [
   { to: "/add_competition", label: "Add Competition" },
   { to: "/load_competition", label: "Load Competition" },
+  { to: "/edit_competitions", label: "Edit Competitions" },
 ];
 
 const Navbar: React.FC<IProps> = ({ onLogout, userRole }) => {

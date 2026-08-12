@@ -191,8 +191,14 @@ tr.rank-3 .rank-badge {
     overflow: hidden;
   }
 
-  /* Cells are centred, so they do not fill the card's height. Colour the card
-     itself or the row tint shows gaps above and below the shorter cells. */
+  /* Cells are centred, so they do not fill the card's height. Let the card
+     alone carry the colour, or the gaps above and below the shorter cells
+     show through as pale strips. */
+  .data-table tbody tr > * {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
   .data-table tbody tr {
     background-color: var(--bs-table-bg, #fff);
   }

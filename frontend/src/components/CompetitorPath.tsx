@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import Select, { SingleValue, MultiValue } from "react-select";
+import { SingleValue, MultiValue } from "react-select";
+import AppSelect from "./AppSelect";
 import { api } from "../config/api";
 import FilterCard, { FilterField } from "./FilterCard";
 import PageHeader from "./PageHeader";
@@ -178,14 +179,14 @@ export default function CompetitorPath() {
 
       <FilterCard>
         <FilterField label="Competition" className="col-12 col-lg-5">
-          <Select
+          <AppSelect
             options={optionsCompetition}
             onChange={handleChangeCompetition}
             placeholder="Select a competition..."
           />
         </FilterField>
         <FilterField label="Competitors" className="col-12 col-lg-7">
-          <Select
+          <AppSelect
             isMulti
             value={selectedCompetitor}
             options={optionsCompetitor}

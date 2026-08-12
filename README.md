@@ -94,9 +94,13 @@ everything else requires authentication:
   JavaScript bundle contains no secrets.
 * **Scripts** — `Authorization: Bearer $API_KEY`, granted the `superadmin` role.
 
-Endpoints that modify data (`/api/competition/add_*`, `/api/competition/remove_one`,
-`/api/competitor/add_competitors_in_competition`, `/api/load/*`) additionally
-require the `superadmin` role.
+Endpoints that modify data (`/api/competition/add_*`, `/api/competition/update_one`,
+`/api/competition/remove_one`, `/api/competitor/add_competitors_in_competition`,
+`/api/load/*`) additionally require the `superadmin` role. In the UI these live
+behind the **Manage** menu, which only superadmins see.
+
+`remove_one` deletes the competition together with every task and result stored
+for it. Competitors are shared between competitions, so they are left in place.
 
 Interactive docs: `/api/docs`.
 
