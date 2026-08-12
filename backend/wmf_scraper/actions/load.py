@@ -11,9 +11,13 @@ from wmf_scraper.models.competitor import CompetitorModel
 from wmf_scraper.models.load import LoadCompetitionResponse, LoadIncorrectTaskResponse
 from wmf_scraper.models.task import TaskModel
 from wmf_scraper.models.task_result import TaskResultModel
-from wmf_scraper.parsers.competitor import get_competitor_data
 from wmf_scraper.parsers.task import get_tasks_data
-from wmf_scraper.parsers.task_results import get_task_results_parallel
+from wmf_scraper.parsers.task_results import (
+    ParsedTask,
+    competitors_for_competition,
+    parse_tasks_parallel,
+    resolve_task_results,
+)
 
 
 async def update_load_time_and_purge_competition(competition_id: int, session: Session) -> CompetitionModel:
@@ -24,19 +28,29 @@ async def update_load_time_and_purge_competition(competition_id: int, session: S
     return await the_competition(competition_id=competition_id, session=session)
 
 
-async def load_tasks_and_competitors(competition: CompetitionModel, session: Session) -> tuple[list[TaskModel], dict]:
-    the_competitors = competitors_mapping(competitors=get_competitor_data(competition), session=session)
+async def load_tasks_and_competitors(competition: CompetitionModel, session: Session) -> tuple[list[ParsedTask], dict]:
+    """Store the tasks, read every task page, then resolve the roster.
 
+    The tasks are parsed before the competitors because they are the fallback
+    source of the roster: an event whose tasks are all still provisional
+    publishes results without ever publishing a competitor list.
+    """
     for task in get_tasks_data(competition):
         session.add(task)
     tasks_list = session.exec(select(TaskModel).where(TaskModel.competition_id == competition.competition_id)).all()
 
-    return list(tasks_list), the_competitors
+    parsed_tasks = parse_tasks_parallel(list(tasks_list))
+    competitors = competitors_for_competition(competition, parsed_tasks)
+    return parsed_tasks, competitors_mapping(competitors=competitors, session=session)
 
 
-async def load_task_results(tasks: list[TaskModel], competitors: dict, session: Session) -> None:
-    for task_result in get_task_results_parallel(tasks, competitors):
+async def load_task_results(
+    parsed_tasks: list[ParsedTask], competitors: dict, session: Session
+) -> dict[int, list[str]]:
+    results, unmatched = resolve_task_results(parsed_tasks, competitors)
+    for task_result in results:
         session.add(task_result)
+    return unmatched
 
 
 async def get_competitors_with_results(task_id: int, session: Session) -> set[str]:
@@ -48,18 +62,21 @@ async def get_competitors_with_results(task_id: int, session: Session) -> set[st
 
 
 async def check_results_integrity(
-    competition: CompetitionModel, competitors: dict, session: Session
+    competition: CompetitionModel,
+    competitors: dict,
+    unmatched: dict[int, list[str]],
+    session: Session,
 ) -> LoadCompetitionResponse:
     result = LoadCompetitionResponse(competition_loaded=competition)
     competitor_names = set(competitors.keys())
     task_list = session.exec(select(TaskModel).where(TaskModel.competition_id == competition.competition_id)).all()
     for task in task_list:
-        result_no_competitor = competitor_no_result = []
-        competitors_with_results = await get_competitors_with_results(optional_to_int_fallback_0(task.task_id), session)
-        if competitors_with_results - competitor_names:
-            result_no_competitor = list(competitors_with_results - competitor_names)
-        if competitor_names - competitors_with_results:
-            competitor_no_result = list(competitor_names - competitors_with_results)
+        task_id = optional_to_int_fallback_0(task.task_id)
+        competitors_with_results = await get_competitors_with_results(task_id, session)
+        # Results whose competitor could not be resolved were never stored, so
+        # they can only be reported from what the parser handed back.
+        result_no_competitor = sorted(set(unmatched.get(task_id, [])))
+        competitor_no_result = sorted(competitor_names - competitors_with_results)
 
         if result_no_competitor or competitor_no_result:
             result.add_incorrect_task(
@@ -74,8 +91,8 @@ async def check_results_integrity(
 
 async def load_competition_helper(competition_id: int, session: Session) -> LoadCompetitionResponse:
     updated_competition = await update_load_time_and_purge_competition(competition_id=competition_id, session=session)
-    tasks, the_competitors = await load_tasks_and_competitors(competition=updated_competition, session=session)
-    await load_task_results(tasks, the_competitors, session)
-    result = await check_results_integrity(updated_competition, the_competitors, session)
+    parsed_tasks, the_competitors = await load_tasks_and_competitors(competition=updated_competition, session=session)
+    unmatched = await load_task_results(parsed_tasks, the_competitors, session)
+    result = await check_results_integrity(updated_competition, the_competitors, unmatched, session)
     session.commit()
     return result
