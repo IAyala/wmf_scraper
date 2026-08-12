@@ -27,6 +27,7 @@ interface ITaskIncorrect {
 
 interface ICompetitionResponse {
   incorrect_tasks_loaded: ITaskIncorrect[];
+  data_changed?: boolean;
   status?: string;
 }
 
@@ -89,6 +90,10 @@ export default function CompetitionOveralls() {
     loadCompetitionData();
   };
 
+  const changeMessage = result.data_changed
+    ? "Results changed since the previous load."
+    : "Nothing changed since the previous load.";
+
   const incorrectColumns: IColumn<ITaskIncorrect>[] = [
     { header: "Task", kind: "num", primary: true, render: (t) => <span className="rank-badge">{t.task_order}</span> },
     {
@@ -126,6 +131,7 @@ export default function CompetitionOveralls() {
           <>
             <div className="alert alert-warning" role="alert">
               <strong>{selected?.label}</strong> loaded with warnings. Status: {result.status}
+              <div>{changeMessage}</div>
             </div>
             <DataTable
               columns={incorrectColumns}
@@ -135,8 +141,9 @@ export default function CompetitionOveralls() {
             />
           </>
         ) : (
-          <div className="alert alert-success" role="alert">
+          <div className={result.data_changed ? "alert alert-success" : "alert alert-info"} role="alert">
             <strong>{selected?.label}</strong> loaded. Status: {result.status}
+            <div>{changeMessage}</div>
           </div>
         )
       ) : (

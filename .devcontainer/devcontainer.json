@@ -1,5 +1,5 @@
 {
-	"name": "fullstack_app",
+	"name": "wmf_scraper",
 	"workspaceFolder": "/home/coder/source",
 	"build": {
 		"dockerfile": "Dockerfile.dev",

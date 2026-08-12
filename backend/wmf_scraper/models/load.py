@@ -16,6 +16,7 @@ class LoadIncorrectTaskResponse(SQLModel):
 class LoadCompetitionResponse(SQLModel):
     competition_loaded: CompetitionModel
     incorrect_tasks_loaded: list[LoadIncorrectTaskResponse] = []
+    data_changed: bool = False
     status: str = "OK"
 
     def add_incorrect_task(self, task: LoadIncorrectTaskResponse) -> None:

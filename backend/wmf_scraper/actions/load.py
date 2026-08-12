@@ -1,3 +1,5 @@
+import hashlib
+import json
 from datetime import datetime
 
 from loguru import logger
@@ -18,6 +20,41 @@ from wmf_scraper.parsers.task_results import (
     parse_tasks_parallel,
     resolve_task_results,
 )
+
+
+def fingerprint_fields(
+    task: TaskModel, result: TaskResultModel | None, competitor: CompetitorModel | None
+) -> list[str]:
+    fields = [str(task.task_order), task.task_name, task.task_status, task.task_url]
+    # A task with no result yet still counts: it disappearing is a change.
+    if result is not None and competitor is not None:
+        fields += [
+            competitor.competitor_name,
+            result.tr_result,
+            str(result.tr_gross_score),
+            str(result.tr_task_penalty),
+            str(result.tr_competition_penalty),
+            str(result.tr_net_score),
+            result.tr_notes,
+        ]
+    return fields
+
+
+def competition_fingerprint(competition_id: int, session: Session) -> str:
+    """Hash everything a load rewrites, so before and after can be compared.
+
+    Row ids are deliberately left out: a load deletes and re-inserts the tasks
+    and their results, so the primary keys differ on every load even when the
+    scraped data is identical.
+    """
+    rows = session.exec(
+        select(TaskModel, TaskResultModel, CompetitorModel)
+        .join(TaskResultModel, TaskResultModel.task_id == TaskModel.task_id, isouter=True)
+        .join(CompetitorModel, CompetitorModel.competitor_id == TaskResultModel.competitor_id, isouter=True)
+        .where(TaskModel.competition_id == competition_id)
+    ).all()
+    payload = sorted(fingerprint_fields(task, result, competitor) for task, result, competitor in rows)
+    return hashlib.sha256(json.dumps(payload).encode()).hexdigest()
 
 
 async def update_load_time_and_purge_competition(competition_id: int, session: Session) -> CompetitionModel:
@@ -90,9 +127,11 @@ async def check_results_integrity(
 
 
 async def load_competition_helper(competition_id: int, session: Session) -> LoadCompetitionResponse:
+    fingerprint_before = competition_fingerprint(competition_id=competition_id, session=session)
     updated_competition = await update_load_time_and_purge_competition(competition_id=competition_id, session=session)
     parsed_tasks, the_competitors = await load_tasks_and_competitors(competition=updated_competition, session=session)
     unmatched = await load_task_results(parsed_tasks, the_competitors, session)
     result = await check_results_integrity(updated_competition, the_competitors, unmatched, session)
+    result.data_changed = competition_fingerprint(competition_id=competition_id, session=session) != fingerprint_before
     session.commit()
     return result
