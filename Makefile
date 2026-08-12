@@ -1,7 +1,11 @@
 .DEFAULT_GOAL := help
-.PHONY: help install dev dev-backend dev-frontend build test lint format check docker-build docker-run deploy clean
+.PHONY: help install dev dev-backend dev-frontend build test lint format check \
+        docker-build docker-run deploy clean \
+        version bump-patch bump-minor bump-major tag
 
 NPM := npm --prefix frontend
+VERSION = $(shell uv version --short)
+TAG = v$(VERSION)
 
 help:  ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -48,7 +52,39 @@ docker-run: docker-build  ## Run the production image on :8000 against a local v
 		-e SUPERADMIN_USERNAME=admin -e SUPERADMIN_PASSWORD=admin \
 		wmf-scraper:local
 
-deploy:  ## Deploy to the wmf-scraper Fly app
+version:  ## Print the current version
+	@echo $(VERSION)
+
+bump-patch:  ## Bump the patch version (0.0.1 -> 0.0.2)
+	@$(MAKE) --no-print-directory _bump PART=patch
+
+bump-minor:  ## Bump the minor version (0.0.1 -> 0.1.0)
+	@$(MAKE) --no-print-directory _bump PART=minor
+
+bump-major:  ## Bump the major version (0.0.1 -> 1.0.0)
+	@$(MAKE) --no-print-directory _bump PART=major
+
+_bump:
+	@uv version --bump $(PART) --frozen
+	@uv lock --quiet
+	@python3 scripts/sync_version.py
+	@echo
+	@echo "Now commit the bump and tag it:"
+	@echo "    git commit -am 'Release v$$(uv version --short)' && make tag"
+
+tag:  ## Tag the current commit as vX.Y.Z (push it to trigger a release)
+	@git diff --quiet || { echo "Working tree is dirty. Commit the version bump first."; exit 1; }
+	@git diff --cached --quiet || { echo "Staged changes present. Commit them first."; exit 1; }
+	@test "$$(git show HEAD:pyproject.toml | grep -m1 '^version = ')" = "version = \"$(VERSION)\"" \
+		|| { echo "pyproject.toml version $(VERSION) is not committed yet."; exit 1; }
+	@git rev-parse -q --verify refs/tags/$(TAG) >/dev/null \
+		&& { echo "Tag $(TAG) already exists."; exit 1; } || true
+	git tag -a $(TAG) -m "Release $(TAG)"
+	@echo
+	@echo "Push it to build and deploy:"
+	@echo "    git push origin $(TAG)"
+
+deploy:  ## Deploy to the wmf-scraper Fly app from your machine
 	fly deploy
 
 clean:  ## Remove build artefacts and caches

@@ -24,7 +24,14 @@ frontend, from a **single** process and a **single** Fly.io app.
 │   │   └── settings.py     all environment variable access
 │   └── tests/
 ├── frontend/               React 18 + TypeScript, built with Vite
-├── pyproject.toml          Python project, managed with uv
+│   └── src/
+│       ├── components/     one component per screen
+│       ├── config/api.ts   the shared axios client
+│       └── hooks/          useVersion
+├── scripts/sync_version.py keeps package.json in step with pyproject.toml
+├── seed/                   request bodies for the bulk endpoints
+├── .github/workflows/      ci.yml on push, release.yml on a v* tag
+├── pyproject.toml          Python project and version, managed with uv
 ├── Dockerfile              builds frontend + backend into one image
 └── fly.toml                the single `wmf-scraper` app
 ```
@@ -32,7 +39,7 @@ frontend, from a **single** process and a **single** Fly.io app.
 ## Requirements
 
 * [uv](https://docs.astral.sh/uv/) for Python
-* Node.js 20+ for the frontend
+* Node.js 22+ for the frontend
 * [flyctl](https://fly.io/docs/flyctl/install/) to deploy
 
 ## Getting started
@@ -54,6 +61,8 @@ make test       # pytest with coverage
 make lint       # ruff + mypy + tsc
 make build      # production frontend build into frontend/dist
 make check      # lint + test
+make version    # print the current version
+make help       # every target
 ```
 
 ## Configuration
@@ -102,10 +111,68 @@ curl -X POST "$BASE/api/load/load_many_competitions" -H "Authorization: Bearer $
      -H 'Content-Type: application/json' -d @seed/load_competitions.json
 ```
 
+## Versioning
+
+`pyproject.toml` holds the one authoritative version number. Everything else
+follows from it:
+
+* `frontend/package.json` is kept in step by [`scripts/sync_version.py`](scripts/sync_version.py).
+* The running app reports it at `/api/version`, read from the installed package
+  metadata rather than from a hard-coded string or an environment variable.
+* The UI shows it on the login card, in the navbar and on the About page — all
+  three from `/api/version`, so what you read is what the server is running.
+
+Never edit the version by hand:
+
+```bash
+make version        # 0.0.1
+make bump-patch     # 0.0.1 -> 0.0.2   bug fixes
+make bump-minor     # 0.0.2 -> 0.1.0   new functionality
+make bump-major     # 0.1.0 -> 1.0.0   breaking changes
+```
+
+## Releasing
+
+```bash
+make bump-patch
+git commit -am "Release v$(make -s version)"
+make tag                       # creates v0.0.2 locally
+git push origin master
+git push origin v0.0.2         # this is what deploys
+```
+
+`make tag` refuses to run on a dirty tree, or when the version in
+`pyproject.toml` has not been committed, so a tag always points at the commit
+that actually carries that version.
+
+Pushing the tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml),
+which:
+
+1. checks the tag matches the version in `pyproject.toml` and `package.json`,
+2. runs ruff, mypy, `tsc` and the test suite,
+3. builds the frontend,
+4. deploys to Fly,
+5. polls `/api/version` until it reports the new version,
+6. opens a GitHub release with generated notes.
+
+It needs exactly one repository secret:
+
+| Secret | How to get it |
+| --- | --- |
+| `FLY_API_TOKEN` | `fly tokens create deploy -a wmf-scraper` |
+
+Add it under *Settings → Secrets and variables → Actions → New repository secret*.
+Nothing else is needed: the application secrets (`SESSION_SECRET`, the
+credentials, `API_KEY`) live on Fly and are never read by CI.
+
+Every push and pull request also runs [`ci.yml`](.github/workflows/ci.yml),
+which does the same checks plus a Docker build, without deploying.
+
 ## Deployment
 
 The app deploys to the Fly.io app **`wmf-scraper`**, in `ams`, with the
-`wmf_data` volume mounted at `/data` holding the SQLite database.
+`wmf_data` volume mounted at `/data` holding the SQLite database. Tag pushes
+deploy automatically; `make deploy` deploys from your machine when you need to.
 
 ```bash
 fly secrets set \
@@ -113,8 +180,7 @@ fly secrets set \
   ADMIN_USERNAME=... ADMIN_PASSWORD=... \
   SUPERADMIN_USERNAME=... SUPERADMIN_PASSWORD=... \
   API_KEY=...
-fly deploy
 ```
 
-See [DEPLOY.md](DEPLOY.md) for the full procedure, including how the database is
-preserved across this refactor.
+See [DEPLOY.md](DEPLOY.md) for the full procedure, including how the SQLite
+database is preserved across deploys and how to back it up.

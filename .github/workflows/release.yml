@@ -1,0 +1,84 @@
+name: Release
+
+# Pushing a tag like v0.0.1 builds, checks and deploys that exact commit to the
+# wmf-scraper Fly app. Create tags with `make bump-patch` then `make tag`.
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Check the tag matches the committed version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION="$(uv version --short)"
+          PACKAGE_VERSION="$(node -p "require('./frontend/package.json').version")"
+          echo "tag=$TAG_VERSION pyproject=$PROJECT_VERSION package.json=$PACKAGE_VERSION"
+          if [ "$TAG_VERSION" != "$PROJECT_VERSION" ] || [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the committed version." \
+                 "Run 'make bump-patch|minor|major', commit, then 'make tag'."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: |
+          uv sync --frozen
+          npm --prefix frontend ci
+
+      - name: Lint and type-check
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy
+          npm --prefix frontend run typecheck
+
+      - name: Test
+        run: uv run pytest --cov --cov-report=term-missing
+
+      - name: Build frontend
+        run: npm --prefix frontend run build
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Verify the deployed version
+        run: |
+          for attempt in $(seq 1 10); do
+            DEPLOYED="$(curl -fsS https://wmf-scraper.fly.dev/api/version | sed -E 's/.*"code_version":"([^"]+)".*/\1/' || true)"
+            [ "$DEPLOYED" = "${GITHUB_REF_NAME#v}" ] && echo "Live version is $DEPLOYED" && exit 0
+            echo "attempt $attempt: live version is '$DEPLOYED', waiting..."
+            sleep 10
+          done
+          echo "::error::Deployed version never reached ${GITHUB_REF_NAME#v}"
+          exit 1
+
+      - name: Create the GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

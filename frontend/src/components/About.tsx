@@ -1,20 +1,10 @@
-import { useState, useEffect } from "react";
 import React from "react";
-import { api } from "../config/api";
+import { useVersion } from "../hooks/useVersion";
 
 interface IProps { }
 
 let About: React.FC<IProps> = () => {
-  const [version, setVersion] = useState<string>();
-
-  useEffect(() => {
-    async function fetchData() {
-      const { data } = await api.get("/version");
-      const result: string = data.code_version;
-      setVersion(result);
-    }
-    fetchData();
-  }, []);
+  const version = useVersion();
 
   return (
     <React.Fragment>
@@ -28,13 +18,13 @@ let About: React.FC<IProps> = () => {
           <div className="col">
             <ul className="list-group">
               <li className="list-group-item">
-                App Name: <span className="fw-bold">WMF Scraper Frontend</span>
+                App Name: <span className="fw-bold">WMF Scraper</span>
               </li>
               <li className="list-group-item">
                 Author: <span className="fw-bold">Iván Ayala</span>
               </li>
               <li className="list-group-item">
-                Code Version: <span className="fw-bold">{version}</span>
+                Version: <span className="fw-bold">{version ?? "loading…"}</span>
               </li>
             </ul>
           </div>

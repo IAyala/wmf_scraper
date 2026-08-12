@@ -44,6 +44,12 @@ export const logout = async (): Promise<void> => {
   await api.post("/auth/logout");
 };
 
+/** The version the server is running. Public, so it works on the login screen. */
+export const fetchVersion = async (): Promise<string> => {
+  const { data } = await api.get<{ code_version: string }>("/version");
+  return data.code_version;
+};
+
 /** Resolves to the logged-in user, or null when there is no valid session. */
 export const fetchCurrentUser = async (): Promise<User | null> => {
   try {

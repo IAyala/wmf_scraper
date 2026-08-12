@@ -1,60 +1,59 @@
 # Deploying to Fly.io
 
-The app deploys as a **single** Fly app, `wmf-scraper`, in the `ams` region.
-FastAPI serves the JSON API under `/api` and the compiled React frontend from
-the same process, so there is no second app and no CORS.
+The app runs as a **single** Fly app, `wmf-scraper`, in `ams`. One FastAPI
+process serves the JSON API under `/api` and the compiled React frontend from
+the same origin, so there is no second app and no CORS.
 
-## Does the existing database survive this refactor?
+Live at <https://wmf-scraper.fly.dev>.
 
-**Yes.** Nothing about the data changes:
+| | |
+| --- | --- |
+| Fly app | `wmf-scraper` |
+| Region | `ams` |
+| Machines | exactly **one** (see [One machine only](#one-machine-only)) |
+| Volume | `wmf_data`, 1 GB, mounted at `/data` |
+| Database | `/data/wmf_scraper.db` (SQLite) |
+| Health check | `GET /api/version` |
 
-| | before | after |
-| --- | --- | --- |
-| Fly app | `wmf-scraper` | `wmf-scraper` (unchanged) |
-| Volume | `wmf_data` | `wmf_data` (unchanged) |
-| Mount point | `/data` | `/data` (unchanged) |
-| `DATABASE_PATH` | `/data/wmf_scraper.db` | `/data/wmf_scraper.db` (unchanged) |
-| Table schema | — | unchanged |
+## Releasing
 
-A `fly deploy` replaces the machine's *image*, not its volume. The volume is
-re-attached to the new machine and the same SQLite file is opened in place.
-
-Two things are worth knowing:
-
-* `create_all()` now runs on every startup instead of only when the database
-  file is missing. It is a no-op for tables that already exist and never drops
-  or alters anything, so existing rows are untouched.
-* The `wmf-scraper-front` app has **no volume**; destroying it cannot affect the
-  data.
-
-Take a snapshot first anyway — it costs nothing and takes seconds.
-
-## Procedure
-
-### 1. Authenticate
+The normal path is a tag push; CI does the rest.
 
 ```bash
-flyctl auth login              # or: export FLY_API_TOKEN=$(op read "op://HABCompTool/wmf_fly_token/password")
-flyctl auth whoami
+make bump-patch                          # or bump-minor / bump-major
+git commit -am "Release v$(make -s version)"
+make tag
+git push origin master
+git push origin "v$(make -s version)"    # this triggers the deploy
 ```
 
-### 2. Back the database up
+[`.github/workflows/release.yml`](.github/workflows/release.yml) then verifies
+the tag matches the committed version, runs the linters, type checkers and
+tests, builds the frontend, deploys, polls `/api/version` until it reports the
+new version, and opens a GitHub release.
+
+It needs one repository secret:
+
+| Secret | How to get it |
+| --- | --- |
+| `FLY_API_TOKEN` | `fly tokens create deploy -a wmf-scraper` |
+
+The application secrets below live on Fly and are never read by CI.
+
+### Deploying by hand
 
 ```bash
-# Server-side snapshot of the volume.
-fly volumes list -a wmf-scraper                         # note the volume id (vol_...)
-fly volumes snapshots create <volume-id>
-fly volumes snapshots list <volume-id>
-
-# And a local copy, so the backup does not live only inside Fly.
-fly ssh sftp get /data/wmf_scraper.db ./wmf_scraper.backup.db -a wmf-scraper
-sqlite3 wmf_scraper.backup.db "select count(*) from taskresultmodel;"
+fly deploy          # or: make deploy
 ```
 
-### 3. Set the secrets
+Useful when you are debugging. It skips every check the workflow runs, and the
+deployed version will be whatever `pyproject.toml` currently says.
 
-The frontend no longer carries any credentials, so all of these are now
-server-side only. Setting secrets restarts the app, so do this before deploying.
+## Application secrets
+
+Set on Fly, not in the repository. The app **refuses to start** in production
+without `SESSION_SECRET` and at least one username/password pair, and logs
+exactly which one is missing.
 
 ```bash
 fly secrets set -a wmf-scraper \
@@ -66,46 +65,78 @@ fly secrets set -a wmf-scraper \
   API_KEY='...'
 ```
 
-`API_KEY` is optional and only enables `Authorization: Bearer` access for
-scripts. If you no longer need it: `fly secrets unset API_KEY -a wmf-scraper`.
+`API_KEY` is optional; it only enables `Authorization: Bearer` access for
+scripts, with the `superadmin` role. Remove it with
+`fly secrets unset API_KEY -a wmf-scraper`.
 
-The app refuses to boot in production without `SESSION_SECRET` and at least one
-username/password pair, and logs which one is missing.
+Setting a secret restarts the machine. Use `--stage` to hold the change until
+the next deploy.
 
-### 4. Deploy
+## The database
+
+`fly deploy` replaces the machine's *image*, not its volume. The volume is
+re-attached to the new machine and the same SQLite file is opened in place, so
+deploys do not touch the data.
+
+`SQLModel.metadata.create_all()` runs on every startup. It creates missing
+tables and is a no-op for tables that already exist; it never drops or alters
+anything.
+
+### Backing up
+
+Both, before anything risky:
 
 ```bash
-fly deploy
+# Server-side snapshot of the volume.
+fly volumes list -a wmf-scraper                  # note the volume id (vol_...)
+fly volumes snapshots create <volume-id>
+fly volumes snapshots list <volume-id>
+
+# And a local copy, so the backup does not live only inside Fly.
+fly ssh sftp get /data/wmf_scraper.db ./backups/wmf_scraper.backup.db -a wmf-scraper
+sqlite3 ./backups/wmf_scraper.backup.db "pragma integrity_check; select count(*) from taskresultmodel;"
 ```
 
-The build is entirely inside the Dockerfile: Node builds the frontend, uv
-installs the Python dependencies from `uv.lock`, and the runtime stage carries
-only the virtualenv and the compiled assets.
+Fly keeps daily snapshots with 5-day retention automatically. `backups/` is
+gitignored.
 
-### 5. Verify
+### Restoring
+
+```bash
+fly volumes create wmf_data --snapshot-id <snapshot-id> -r ams -a wmf-scraper
+```
+
+then attach it to a fresh machine. To restore just the file, `fly ssh sftp
+shell -a wmf-scraper` and put it back at `/data/wmf_scraper.db` while the app
+is stopped.
+
+### One machine only
+
+A Fly volume attaches to a single machine and the database is a file on it.
+**Do not scale this app past one machine** — a second machine would come up
+with no volume, or with a different copy of the data.
+
+## Verifying a deploy
 
 ```bash
 curl -s https://wmf-scraper.fly.dev/api/version
-curl -s -o /dev/null -w '%{http_code}\n' https://wmf-scraper.fly.dev/api/competition/get_all_competitions   # expect 401
-curl -s -o /dev/null -w '%{http_code}\n' https://wmf-scraper.fly.dev/                                       # expect 200, the UI
+curl -s -o /dev/null -w '%{http_code}\n' https://wmf-scraper.fly.dev/                                      # 200, the UI
+curl -s -o /dev/null -w '%{http_code}\n' https://wmf-scraper.fly.dev/api/competition/get_all_competitions  # 401
 ```
 
-Then open <https://wmf-scraper.fly.dev/>, log in, and confirm a competition's
-overall results still render — that proves the volume came back with its data.
+Then log in and open a competition's overall results, which proves the volume
+came back with its data.
 
-### 6. The old frontend app
+## Operations
 
-`wmf-scraper-front` no longer exists — it was already destroyed before the
-v3.0.0 deploy, and `fly apps list` shows `wmf-scraper` as the only app in the
-org. Nothing further to do.
+| | |
+| --- | --- |
+| Logs | `fly logs -a wmf-scraper` |
+| Shell | `fly ssh console -a wmf-scraper` |
+| Status | `fly status -a wmf-scraper` |
+| Secrets | `fly secrets list -a wmf-scraper` |
 
-If anyone still has <https://wmf-scraper-front.fly.dev> bookmarked, that URL is
-dead. The app lives at <https://wmf-scraper.fly.dev>.
-
-## Operational notes
-
-* **One machine only.** A Fly volume attaches to a single machine, and the
-  database is a file on it. Do not scale this app past one machine.
-* **Restoring a snapshot:** `fly volumes create wmf_data --snapshot-id <id> -r ams -a wmf-scraper`,
-  then attach it to a fresh machine.
-* **Logs:** `fly logs -a wmf-scraper`. **Shell:** `fly ssh console -a wmf-scraper`.
+The machine has `auto_stop_machines = 'stop'` and `min_machines_running = 0`,
+so it sleeps when idle. The first request after a sleep waits a few seconds for
+it to boot — that now delays the page load too, since the UI is served by the
+same machine.
