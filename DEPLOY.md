@@ -93,17 +93,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://wmf-scraper.fly.dev/           
 Then open <https://wmf-scraper.fly.dev/>, log in, and confirm a competition's
 overall results still render — that proves the volume came back with its data.
 
-### 6. Retire the old frontend app
+### 6. The old frontend app
 
-Only after step 5 passes. This is irreversible.
+`wmf-scraper-front` no longer exists — it was already destroyed before the
+v3.0.0 deploy, and `fly apps list` shows `wmf-scraper` as the only app in the
+org. Nothing further to do.
 
-```bash
-fly volumes list -a wmf-scraper-front    # expect an empty list — confirm before destroying
-fly apps destroy wmf-scraper-front
-```
-
-If anyone has <https://wmf-scraper-front.fly.dev> bookmarked, that URL stops
-working. The app now lives at <https://wmf-scraper.fly.dev>.
+If anyone still has <https://wmf-scraper-front.fly.dev> bookmarked, that URL is
+dead. The app lives at <https://wmf-scraper.fly.dev>.
 
 ## Operational notes
 
