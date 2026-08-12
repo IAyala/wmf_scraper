@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import { api } from "../config/api";
+import DataTable, { IColumn } from "./DataTable";
+import FilterCard, { FilterField } from "./FilterCard";
+import PageHeader from "./PageHeader";
+import { loadedOn, rankClass } from "./tableHelpers";
 
 interface IOption {
   value: string;
@@ -74,61 +78,33 @@ export default function CompetitionOveralls() {
     fetchCompetitionData();
   };
 
+  const columns: IColumn<IResult>[] = [
+    { header: "Pos", kind: "num", primary: true, render: (r) => <span className="rank-badge">{r.position}</span> },
+    { header: "Competitor", kind: "text", primary: true, render: (r) => <strong>{r.competitor_name}</strong> },
+    { header: "Country", kind: "text", render: (r) => r.competitor_country },
+    { header: "Total", kind: "num", primary: true, render: (r) => <strong>{r.total_score.toLocaleString()}</strong> },
+    { header: "Average", kind: "num", render: (r) => r.average_score.toLocaleString() },
+    { header: "Comp Pen", kind: "num", render: (r) => r.total_competition_penalty },
+    { header: "Task Pen", kind: "num", render: (r) => r.total_task_penalty },
+  ];
+
   return (
-    <div className="container mt-3">
-      <div className="row mt-3">
-        <div className="col">
-          <Select options={options} onChange={handleChange} />
-        </div>
-      </div>
-      <div className="row mt-3">
-        {selected && (
-          <h5>
-            Competition loaded on {selected?.load_time.toString().slice(0, 24)}
-          </h5>
-        )}
-      </div>
-      <div className="row mt-3">
-        {result.length > 0 && (
-          <div className="col">
-            <table className="table text-center table-hover shadow">
-              <thead className="table-dark">
-                <tr>
-                  <th>Position</th>
-                  <th>Competitor Name</th>
-                  <th>Competitor Country</th>
-                  <th>Total Score</th>
-                  <th>Average Score</th>
-                  <th>Total Comp Penalty</th>
-                  <th>Total Task Penalty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.length > 0 &&
-                  result.map((user) => {
-                    return (
-                      <tr
-                        key={user.position}
-                        className={`${user.competitor_country === "Spain"
-                            ? "table-warning"
-                            : ""
-                          }`}
-                      >
-                        <td>{user.position}</td>
-                        <td>{user.competitor_name}</td>
-                        <td>{user.competitor_country}</td>
-                        <td>{user.total_score}</td>
-                        <td>{user.average_score}</td>
-                        <td>{user.total_competition_penalty}</td>
-                        <td>{user.total_task_penalty}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+    <div className="container py-3">
+      <PageHeader title="Competition Overalls" subtitle={loadedOn(selected?.load_time)} />
+
+      <FilterCard>
+        <FilterField label="Competition" className="col-12">
+          <Select options={options} onChange={handleChange} placeholder="Select a competition..." />
+        </FilterField>
+      </FilterCard>
+
+      <DataTable
+        columns={columns}
+        rows={result}
+        rowKey={(r) => r.position}
+        rowClassName={(r) => rankClass(r.position, r.competitor_country)}
+        empty={selected ? "No results for this competition." : "Select a competition to see the standings."}
+      />
     </div>
   );
 }

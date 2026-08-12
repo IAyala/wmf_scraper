@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../config/api";
+import PageHeader from "./PageHeader";
 
 interface ICompetition {
   competition_description: string;
@@ -55,61 +56,63 @@ let AddCompetition: React.FC<IProps> = () => {
   };
 
   return (
-    <React.Fragment>
-      <div className="container mt-3">
-        <div className="row mt-3">
-          <div className="col-md-8">
-            <div className="card">
-              <div className="card-header text-center bg-primary text-white">
-                <p className="h4">Competition Details</p>
+    <div className="container py-3">
+      <PageHeader
+        title="Add Competition"
+        subtitle="Register a WatchMeFly event so its results can be loaded."
+      />
+
+      <div className="row">
+        <div className="col-12 col-lg-8">
+          <div className="filter-card">
+            <form onSubmit={add_competition}>
+              <div className="mb-3">
+                <label className="filter-label" htmlFor="competition_description">
+                  Description
+                </label>
+                <input
+                  id="competition_description"
+                  required={true}
+                  name="competition_description"
+                  value={state.competition.competition_description}
+                  onChange={updateInput}
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. 2026 French Nationals"
+                />
               </div>
-              <div className="card-body">
-                <form onSubmit={add_competition}>
-                  <div className="mb-2">
-                    <input
-                      required={true}
-                      name="competition_description"
-                      value={state.competition.competition_description}
-                      onChange={updateInput}
-                      type="text"
-                      className="form-control"
-                      placeholder="Description"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <input
-                      required={true}
-                      name="competition_url"
-                      value={state.competition.competition_url}
-                      onChange={updateInput}
-                      type="text"
-                      className="form-control"
-                      placeholder="URL"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <input
-                      type="submit"
-                      className="btn btn-primary"
-                      value="Add Competition"
-                    />
-                  </div>
-                </form>
+              <div className="mb-3">
+                <label className="filter-label" htmlFor="competition_url">
+                  WatchMeFly URL
+                </label>
+                <input
+                  id="competition_url"
+                  required={true}
+                  name="competition_url"
+                  value={state.competition.competition_url}
+                  onChange={updateInput}
+                  type="url"
+                  className="form-control"
+                  placeholder="https://watchmefly.net/events/event.php?e=...&v=tt"
+                />
+                <div className="form-text">
+                  Use the <strong>Results</strong> view of the event, the one ending in <code>&amp;v=tt</code>.
+                </div>
               </div>
+              <button type="submit" className="btn btn-primary">
+                Add Competition
+              </button>
+            </form>
+          </div>
+
+          {reqOk !== undefined && (
+            <div className={`alert mt-3 ${reqOk.is_ok ? "alert-success" : "alert-danger"}`} role="alert">
+              {reqState}
             </div>
-          </div>
+          )}
         </div>
-        {reqOk === undefined ? ("") : reqOk.is_ok ? (
-          <div className="row mt-3">
-            <h5 className="text-success">{reqState}</h5>
-          </div>
-        ) : (
-          <div className="row mt-3">
-            <h5 className="text-danger">{reqState}</h5>
-          </div>
-        )}
       </div>
-    </React.Fragment>
+    </div>
   );
 };
 export default AddCompetition;

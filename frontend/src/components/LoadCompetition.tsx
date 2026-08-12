@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import { api } from "../config/api";
+import DataTable, { IColumn } from "./DataTable";
+import FilterCard, { FilterField } from "./FilterCard";
+import PageHeader from "./PageHeader";
 
 interface IOption {
   value: string;
@@ -85,68 +88,60 @@ export default function CompetitionOveralls() {
     loadCompetitionData();
   };
 
+  const incorrectColumns: IColumn<ITaskIncorrect>[] = [
+    { header: "Task", kind: "num", primary: true, render: (t) => <span className="rank-badge">{t.task_order}</span> },
+    {
+      header: "Competitor without result",
+      kind: "text",
+      render: (t) => (t.competitor_no_result?.length ? t.competitor_no_result.join(", ") : "—"),
+    },
+    {
+      header: "Result without competitor",
+      kind: "text",
+      render: (t) => (t.result_no_competitor?.length ? t.result_no_competitor.join(", ") : "—"),
+    },
+  ];
+
   return (
-    <div className="container mt-3">
-      <div className="row mt-3">
-        <div className="col">
-          <Select options={options} onChange={handleChange} />
-        </div>
-      </div>
-      <div className="row mt-3">
-        <div className="col">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleClick}
-          >
+    <div className="container py-3">
+      <PageHeader
+        title="Load Competition"
+        subtitle="Re-scrapes WatchMeFly and replaces this competition's stored results."
+      />
+
+      <FilterCard>
+        <FilterField label="Competition" className="col-12 col-md-8">
+          <Select options={options} onChange={handleChange} placeholder="Select a competition..." />
+        </FilterField>
+        <div className="col-12 col-md-4 d-flex align-items-end">
+          <button type="button" className="btn btn-primary w-100" onClick={handleClick} disabled={!selected}>
             Load Competition
           </button>
         </div>
-      </div>
-      {reqOk === undefined ? ("") : reqOk.is_ok ? (
+      </FilterCard>
+
+      {reqOk === undefined ? null : reqOk.is_ok ? (
         result.incorrect_tasks_loaded.length > 0 ? (
-          <div className="row mt-3">
-            <h5 className="text-warning">
-              Request to Load {selected?.label} worked with failures. Status is:{" "}
-              {result.status}
-            </h5>
-            <div className="row mt-3">
-              <div className="col">
-                <table className="table text-center table-hover shadow">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>Task #</th>
-                      <th>Competitor No Result</th>
-                      <th>Result no Competitor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.incorrect_tasks_loaded.map(
-                      (result_details: ITaskIncorrect) => {
-                        return (
-                          <tr key={result_details.task_order}>
-                            <td>{result_details.task_order}</td>
-                            <td>{result_details.competitor_no_result}</td>
-                            <td>{result_details.result_no_competitor}</td>
-                          </tr>
-                        );
-                      }
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          <>
+            <div className="alert alert-warning" role="alert">
+              <strong>{selected?.label}</strong> loaded with warnings. Status: {result.status}
             </div>
-          </div>
+            <DataTable
+              columns={incorrectColumns}
+              rows={result.incorrect_tasks_loaded}
+              rowKey={(t) => t.task_order}
+              empty="No task discrepancies."
+            />
+          </>
         ) : (
-          <div className="row mt-3">
-            <h5 className="text-success">
-              Request to Load {selected?.label} worked. Status is:{" "}
-              {result.status}
-            </h5>
+          <div className="alert alert-success" role="alert">
+            <strong>{selected?.label}</strong> loaded. Status: {result.status}
           </div>
         )
       ) : (
-        <h5 className="text-danger">{reqState}</h5>
+        <div className="alert alert-danger" role="alert">
+          {reqState}
+        </div>
       )}
     </div>
   );

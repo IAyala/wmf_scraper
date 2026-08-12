@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import { api } from "../config/api";
+import DataTable, { IColumn } from "./DataTable";
+import FilterCard, { FilterField } from "./FilterCard";
+import PageHeader from "./PageHeader";
+import { loadedOn } from "./tableHelpers";
 
 interface IOptionCompetition {
   value: string;
@@ -145,84 +149,63 @@ export default function TasksResultsCompetitor() {
     fetchResults(selected);
   };
 
+  const columns: IColumn<IResult>[] = [
+    { header: "Task", kind: "num", primary: true, render: (r) => <span className="rank-badge">{r.task_order}</span> },
+    { header: "Name", kind: "text", primary: true, render: (r) => <strong>{r.task_name}</strong> },
+    { header: "Status", kind: "text", render: (r) => <span className="badge bg-secondary">{r.task_status}</span> },
+    { header: "Result", kind: "num", render: (r) => r.result },
+    { header: "Gross", kind: "num", render: (r) => r.gross_score.toLocaleString() },
+    { header: "Comp Pen", kind: "num", render: (r) => r.competition_penalty || "—" },
+    { header: "Task Pen", kind: "num", render: (r) => r.task_penalty || "—" },
+    { header: "Net", kind: "num", primary: true, render: (r) => <strong>{r.net_score.toLocaleString()}</strong> },
+    { header: "Notes", kind: "notes", render: (r) => r.notes },
+  ];
+
+  const subtitle = [loadedOn(selectedCompetition?.load_time), selectedCompetitor?.label]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className="container mt-3">
-      <div className="row mt-3">
-        <div className="col">
+    <div className="container py-3">
+      <PageHeader title="Results by Competitor" subtitle={subtitle || undefined} />
+
+      <FilterCard>
+        <FilterField label="Competition" className="col-12 col-lg-4">
           <Select
             options={optionsCompetition}
             onChange={handleChangeCompetition}
+            placeholder="Select a competition..."
           />
-        </div>
-      </div>
-      <div className="row mt-3">
-        <div className="col">
-          <Select options={optionsCountry} onChange={handleChangeCountry} />
-        </div>
-      </div>
-      <div className="row mt-3">
-        <div className="col">
+        </FilterField>
+        <FilterField label="Country" className="col-12 col-md-6 col-lg-4">
+          <Select
+            options={optionsCountry}
+            onChange={handleChangeCountry}
+            isDisabled={!optionsCountry}
+            placeholder={optionsCountry ? "Select a country..." : "Pick a competition first"}
+          />
+        </FilterField>
+        <FilterField label="Competitor" className="col-12 col-md-6 col-lg-4">
           <Select
             options={optionsCompetitor}
             onChange={handleChangeCompetitor}
+            isDisabled={!optionsCompetitor}
+            placeholder={optionsCompetitor ? "Select a competitor..." : "Pick a country first"}
           />
-        </div>
-      </div>
-      <div className="row mt-3">
-        {selectedCompetition && selectedCompetitor && (
-          <h5>
-            Competition loaded on{" "}
-            {selectedCompetition?.load_time.toString().slice(0, 24)} Results for
-            competitor: {selectedCompetitor.label}
-          </h5>
-        )}
-      </div>
-      <div className="row mt-3">
-        {result.length > 0 && (
-          <div className="col">
-            <table className="table text-center table-hover shadow">
-              <thead className="table-dark">
-                <tr>
-                  <th>Task #</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Result</th>
-                  <th>Gross Score</th>
-                  <th>Comp Penalty</th>
-                  <th>Task Penalty</th>
-                  <th>Net Score</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.length > 0 &&
-                  result.map((result_details) => {
-                    return (
-                      <tr
-                        key={result_details.task_order}
-                        className={`${result_details.task_penalty > 0 ||
-                            result_details.competition_penalty > 0
-                            ? "table-danger"
-                            : ""
-                          }`}
-                      >
-                        <td>{result_details.task_order}</td>
-                        <td>{result_details.task_name}</td>
-                        <td>{result_details.task_status}</td>
-                        <td>{result_details.result}</td>
-                        <td>{result_details.gross_score}</td>
-                        <td>{result_details.competition_penalty}</td>
-                        <td>{result_details.task_penalty}</td>
-                        <td>{result_details.net_score}</td>
-                        <td>{result_details.notes}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        </FilterField>
+      </FilterCard>
+
+      <DataTable
+        columns={columns}
+        rows={result}
+        rowKey={(r) => r.task_order}
+        rowClassName={(r) => (r.task_penalty > 0 || r.competition_penalty > 0 ? "table-danger" : undefined)}
+        empty={
+          selectedCompetitor
+            ? "No results for this competitor."
+            : "Choose a competition, a country and a competitor."
+        }
+      />
     </div>
   );
 }

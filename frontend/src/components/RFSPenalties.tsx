@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import { api } from "../config/api";
+import DataTable, { IColumn } from "./DataTable";
+import FilterCard, { FilterField } from "./FilterCard";
+import PageHeader from "./PageHeader";
+import { loadedOn } from "./tableHelpers";
 
 interface IOption {
   value: string;
@@ -74,66 +78,54 @@ export default function RFSPenalties() {
     fetchCompetitionData();
   };
 
+  const columns: IColumn<IResult>[] = [
+    { header: "Pilot", kind: "text", primary: true, render: (r) => <strong>{r.competitor_name}</strong> },
+    { header: "Country", kind: "text", render: (r) => r.competitor_country },
+    { header: "Task", kind: "num", primary: true, render: (r) => <span className="rank-badge">{r.task_number}</span> },
+    { header: "Description", kind: "text", render: (r) => r.task_description },
+    {
+      header: "Penalty",
+      kind: "num",
+      primary: true,
+      // The headline number: most events penalise at competition level, so
+      // showing the task penalty alone reads as "—" on nearly every row.
+      render: (r) => <strong>{r.task_penalty + r.competition_penalty || "—"}</strong>,
+    },
+    { header: "Task Pen", kind: "num", render: (r) => r.task_penalty || "—" },
+    { header: "Comp Pen", kind: "num", render: (r) => r.competition_penalty || "—" },
+    { header: "Notes", kind: "notes", render: (r) => r.notes },
+  ];
+
+  const penaltyClass = (r: IResult) => {
+    if (r.task_penalty + r.competition_penalty === 0) return "table-warning";
+    return r.competitor_country === "Spain" ? "table-info" : "table-danger";
+  };
+
   return (
-    <div className="container mt-3">
-      <div className="row mt-3">
-        <div className="col">
-          <Select options={options} onChange={handleChange} />
+    <div className="container py-3">
+      <PageHeader title="RFS Penalties" subtitle={loadedOn(selected?.load_time)} />
+
+      <FilterCard>
+        <FilterField label="Competition" className="col-12">
+          <Select options={options} onChange={handleChange} placeholder="Select a competition..." />
+        </FilterField>
+      </FilterCard>
+
+      {result.length > 0 && (
+        <div className="d-flex flex-wrap gap-3 mb-2 small text-muted">
+          <span><span className="badge bg-danger">&nbsp;</span> penalised</span>
+          <span><span className="badge bg-info text-dark">&nbsp;</span> penalised, Spain</span>
+          <span><span className="badge bg-warning text-dark">&nbsp;</span> flagged, no penalty</span>
         </div>
-      </div>
-      <div className="row mt-3">
-        {selected && (
-          <h5>
-            Competition loaded on {selected?.load_time.toString().slice(0, 24)}
-          </h5>
-        )}
-      </div>
-      <div className="row mt-3">
-        {result.length > 0 && (
-          <div className="col">
-            <table className="table text-center table-hover shadow">
-              <thead className="table-dark">
-                <tr>
-                  <th>ID</th>
-                  <th>Pilot Name</th>
-                  <th>Pilot Country</th>
-                  <th>Task Number</th>
-                  <th>Task Description</th>
-                  <th>Task Penalty</th>
-                  <th>Competition Penalty</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.length > 0 &&
-                  result.map((user, index) => {
-                    const penaltySum = user.task_penalty + user.competition_penalty;
-                    return (
-                      <tr
-                        key={index}
-                        className={`${user.competitor_country === "Spain"
-                            ? "table-info"
-                            : penaltySum === 0
-                              ? "table-warning"
-                              : "table-danger"
-                          }`}
-                      >
-                        <td>{index + 1}</td>
-                        <td>{user.competitor_name}</td>
-                        <td>{user.competitor_country}</td>
-                        <td>{user.task_number}</td>
-                        <td>{user.task_description}</td>
-                        <td>{user.task_penalty}</td>
-                        <td>{user.competition_penalty}</td>
-                        <td>{user.notes}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      )}
+
+      <DataTable
+        columns={columns}
+        rows={result}
+        rowKey={(_, index) => index}
+        rowClassName={penaltyClass}
+        empty={selected ? "No RFS penalties in this competition." : "Select a competition to see RFS penalties."}
+      />
     </div>
   );
 }

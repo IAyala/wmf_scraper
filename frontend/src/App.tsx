@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import AddCompetition from "./components/AddCompetition";
 import CompetitionByCountry from "./components/CompetitionByCountry";
 import CompetitionOveralls from "./components/CompetitionOveralls";
@@ -62,6 +62,8 @@ function App() {
         <Route path={"/results_competitor"} element={<TasksResultsCompetitor />} />
         <Route path={"/results_path"} element={<CompetitorPath />} />
         <Route path={"/rfs_penalties"} element={<RFSPenalties />} />
+        {/* "/" and anything unrecognised land on the standings. */}
+        <Route path="*" element={<Navigate to="/overalls" replace />} />
       </Routes>
       <StatusBar />
     </React.Fragment>

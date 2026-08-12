@@ -1,6 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Select, { SingleValue, MultiValue } from "react-select";
 import { api } from "../config/api";
+import FilterCard, { FilterField } from "./FilterCard";
+import PageHeader from "./PageHeader";
+import { loadedOn } from "./tableHelpers";
 import {
   LineChart,
   Line,
@@ -9,6 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
 
 interface IOptionCompetition {
@@ -65,9 +69,6 @@ export default function CompetitorPath() {
     useState<MultiValue<IOptionCompetitor>>();
   const [result, setResult] = useState<IResult>();
 
-  const [divWidth, setDivWidth] = useState(0); // Initialize the width as 0
-  const myDivRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     async function fetchData() {
       const { data } = await api.get("/competition/get_all_competitions");
@@ -87,23 +88,7 @@ export default function CompetitorPath() {
       setOptionsCompetition(results);
     }
 
-    const updateDivWidth = () => {
-      if (myDivRef.current) {
-        const newWidth = myDivRef.current.clientWidth;
-        setDivWidth(newWidth);
-      }
-    };
-
     fetchData();
-    updateDivWidth();
-
-    // Add event listener for window resize
-    window.addEventListener("resize", updateDivWidth);
-
-    // Clean up the event listener on component unmount
-    return () => {
-      window.removeEventListener("resize", updateDivWidth);
-    };
   }, []);
 
   const handleChangeCompetition = (
@@ -165,75 +150,95 @@ export default function CompetitorPath() {
     fetchResults(selected);
   };
 
+  const competitorCount = selectedCompetitor?.length ?? 0;
+  const chartHeight = Math.min(720, Math.max(340, 60 + competitorCount * 26));
+
+  // Positions run 1..N. Pin the axis to that range with a handful of round
+  // ticks; left to itself, a reversed axis picks a confusing set.
+  const positions = (result?.data ?? []).flatMap((row) =>
+    Object.entries(row)
+      .filter(([key]) => key !== "x")
+      .map(([, value]) => Number(value))
+      .filter((value) => Number.isFinite(value) && value > 0)
+  );
+  const maxPosition = positions.length > 0 ? Math.max(...positions) : 10;
+  const tickStep = Math.max(1, Math.ceil(maxPosition / 6));
+  const positionTicks = [1];
+  for (let tick = tickStep; tick <= maxPosition; tick += tickStep) {
+    if (tick > 1) positionTicks.push(tick);
+  }
+  if (positionTicks[positionTicks.length - 1] !== maxPosition) positionTicks.push(maxPosition);
+
   return (
-    <div className="container mt-3">
-      <div className="row mt-3">
-        <div className="col" ref={myDivRef}>
+    <div className="container py-3">
+      <PageHeader
+        title="Competitor Results Path"
+        subtitle={loadedOn(selectedCompetition?.load_time)}
+      />
+
+      <FilterCard>
+        <FilterField label="Competition" className="col-12 col-lg-5">
           <Select
             options={optionsCompetition}
             onChange={handleChangeCompetition}
+            placeholder="Select a competition..."
           />
-        </div>
-      </div>
-      <div className="row mt-3">
-        <div className="col">
+        </FilterField>
+        <FilterField label="Competitors" className="col-12 col-lg-7">
           <Select
             isMulti
             value={selectedCompetitor}
             options={optionsCompetitor}
             onChange={handleChangeCompetitor}
+            isDisabled={!optionsCompetitor}
+            placeholder={optionsCompetitor ? "Add one or more competitors..." : "Pick a competition first"}
           />
-        </div>
-      </div>
-      <div className="row mt-3">
-        {selectedCompetition && selectedCompetitor && (
-          <h5>
-            Competition loaded on{" "}
-            {selectedCompetition?.load_time.toString().slice(0, 24)}
-          </h5>
-        )}
-      </div>
-      {result && optionsCompetitor && (
-        <div className="row mt-3">
-          <div className="col">
-            <div
-              className="container"
-              style={{ width: "100%", height: "400px" }}
-            >
-              {result.data.length > 0 && (
-                <LineChart
-                  width={divWidth - 40}
-                  height={Math.max(10 * optionsCompetitor.length, 400)}
-                  data={result.data}
-                >
-                  <CartesianGrid strokeDasharray="5 5" />
-                  <XAxis dataKey="x" />
-                  <YAxis
-                    ticks={Array.from(
-                      { length: optionsCompetitor.length },
-                      (_, i) => i + 1
-                    )}
-                    reversed={true}
+        </FilterField>
+      </FilterCard>
+
+      {result && result.data.length > 0 ? (
+        <div className="table-card p-2 p-md-3">
+          <p className="page-subtitle mb-2">Position after each task — lower is better.</p>
+          {/* ResponsiveContainer keeps the chart inside the card at any width,
+              which a measured pixel width never managed to do on a phone. */}
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <LineChart data={result.data} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
+              <CartesianGrid strokeDasharray="5 5" />
+              <XAxis dataKey="x" tick={{ fontSize: 12 }} />
+              <YAxis
+                type="number"
+                domain={[1, maxPosition]}
+                ticks={positionTicks}
+                interval={0}
+                allowDecimals={false}
+                reversed={true}
+                tick={{ fontSize: 12 }}
+                width={34}
+              />
+              <Tooltip />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {Object.keys(result.data[0])
+                .filter((element) => element !== "x")
+                .map((the_key, index) => (
+                  <Line
+                    key={the_key}
+                    type="monotone"
+                    dataKey={the_key}
+                    stroke={colours[index % colours.length]}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                    name={the_key}
                   />
-                  <Tooltip />
-                  <Legend />
-                  {Object.keys(result.data[0])
-                    .filter((element) => element !== "x")
-                    .map((the_key, index) => {
-                      return (
-                        <Line
-                          type="monotone"
-                          dataKey={the_key}
-                          stroke={colours[index]}
-                          activeDot={{ r: 6 }}
-                          name={the_key}
-                        />
-                      );
-                    })}
-                </LineChart>
-              )}
-            </div>
-          </div>
+                ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div className="empty-state">
+          {selectedCompetition
+            ? "Pick one or more competitors to plot their position through the tasks."
+            : "Select a competition to start."}
         </div>
       )}
     </div>
