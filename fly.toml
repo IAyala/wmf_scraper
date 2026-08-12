@@ -1,0 +1,45 @@
+# The single Fly app: FastAPI serves both the JSON API and the React frontend.
+# See https://fly.io/docs/reference/configuration/
+
+app = 'wmf-scraper'
+primary_region = 'ams'
+console_command = '/bin/bash'
+
+[build]
+dockerfile = 'Dockerfile'
+
+[env]
+ENVIRONMENT = 'production'
+DATABASE_PATH = '/data/wmf_scraper.db'
+STATIC_DIR = '/app/static'
+
+[http_service]
+internal_port = 8000
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
+
+[[http_service.checks]]
+interval = '30s'
+timeout = '10s'
+grace_period = '30s'
+method = 'GET'
+path = '/api/version'
+protocol = 'http'
+tls_skip_verify = false
+
+[http_service.checks.headers]
+User-Agent = 'Fly Health Check'
+
+[[vm]]
+memory = '512mb'
+cpu_kind = 'shared'
+cpus = 1
+
+# The database is a SQLite file on this volume. Because a volume attaches to a
+# single machine, this app must stay at exactly one machine.
+[mounts]
+source = 'wmf_data'
+destination = '/data'

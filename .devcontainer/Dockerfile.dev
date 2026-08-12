@@ -1,0 +1,97 @@
+FROM debian:12-slim
+
+# Node 20 reached end-of-life 2026-04-30. Use the current LTS line.
+ARG NODE_VERSION=24
+
+ENV HOME=/home/coder
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Create user
+USER root
+RUN apt-get update -y \
+    && useradd -ms /bin/bash coder \
+    && echo "root:coder" | chpasswd \
+    && echo "coder:coder" | chpasswd \
+    && usermod -aG sudo coder \
+    && sed -i "s|auth       sufficient pam_rootok.so|\
+        auth sufficient pam_rootok.so \n\
+        auth [success=ignore default=1] pam_succeed_if.so user = root \n\
+        auth sufficient pam_succeed_if.so use_uid user ingroup sudo \n\
+        |g" /etc/pam.d/su
+
+# Install build essentials, C++ toolchain, and Node.js.
+# - ninja-build: faster cmake generator (incremental builds in seconds).
+# - mold: drop-in linker, ~5–10× faster than ld for our binary.
+# - entr: optional, used by the `make watch-backend` style loop.
+RUN apt-get update -y \
+    && apt-get install -y \
+        sudo \
+        build-essential \
+        cmake \
+        ninja-build \
+        mold \
+        entr \
+        g++ \
+        pkg-config \
+        curl \
+        git \
+        ca-certificates \
+        gnupg \
+        lsof \
+        lcov \
+        ccache \
+        clang-format \
+        libproj-dev \
+        libsqlite3-dev \
+        sqlite3 \
+        libgeotiff-dev \
+        jq \
+        gh
+
+# Install Node.js
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update -y \
+    && apt-get install -y nodejs
+
+# Install `uv` — the Python package manager used by cloud-relay/. Lifted
+# directly from the official uv image so we get a pinned, reproducible
+# binary instead of curl-piping the installer. Both `uv` and `uvx` end up
+# on the system-wide PATH at /usr/local/bin so non-interactive shells
+# (e.g. `make`) find them without any PATH gymnastics.
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
+
+# Install `flyctl` — the Fly.io CLI used to deploy the cloud relay. Same
+# pattern as uv: copy a binary out of the official image into the system
+# PATH so `make cloud-relay-deploy` works from any shell. The user still
+# has to `flyctl auth login` once to authorize their account.
+#
+# Pinned to `latest` (dev-tool, doesn't need strict reproducibility);
+# bump to a specific tag like `v0.3.214` if you want to lock the version.
+COPY --from=flyio/flyctl:latest /flyctl /usr/local/bin/flyctl
+
+# One Password
+RUN curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+  sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+  sudo tee /etc/apt/sources.list.d/1password.list && \
+  sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
+  curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+  sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
+  sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+  curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+  sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
+  sudo apt update && sudo apt install 1password-cli
+
+# Clean up
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Shell config for both root and coder
+COPY .devcontainer/.bashrc /root/.bashrc
+COPY .devcontainer/.bashrc ${HOME}/.bashrc
+
+USER coder
+RUN find ${HOME} -print0 | xargs -0 -n 1 -P 8 chown coder:coder || true
+
+WORKDIR ${HOME}/source

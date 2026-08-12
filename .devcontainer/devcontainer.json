@@ -1,0 +1,48 @@
+{
+	"name": "fullstack_app",
+	"workspaceFolder": "/home/coder/source",
+	"build": {
+		"dockerfile": "Dockerfile.dev",
+		"context": "..",
+		"args": {
+			"NODE_VERSION": "24"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"settings": {},
+			"extensions": [
+				"anthropic.claude-code",
+				"nimda.deepdark-material",
+				"ms-vscode.cmake-tools",
+				"ms-vscode.makefile-tools",
+				"esbenp.prettier-vscode",
+				"ms-vscode.cpptools-extension-pack",
+				"vitest.explorer",
+				"matepek.vscode-catch2-test-adapter",
+				"ms-azuretools.vscode-containers",
+				"ritwickdey.LiveServer",
+				"tomoki1207.pdf"
+			]
+		}
+	},
+	"postCreateCommand": "bash /home/coder/source/environment/init.sh",
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/coder/.ssh,type=bind,consistency=delegated",
+		"source=${localEnv:HOME}/.gitconfig,target=/home/coder/.gitconfig,type=bind,consistency=delegated",
+		"source=${localEnv:HOME}/.claude,target=/home/coder/.claude,type=bind,consistency=delegated",
+		"source=${localWorkspaceFolder},target=/home/coder/source,type=bind,consistency=delegated",
+		"source=${localEnv:HOME}/.maps,target=/home/coder/.maps,type=bind,consistency=delegated",
+		"source=${localEnv:HOME}/.tds,target=/home/coder/.tds,type=bind,consistency=delegated"
+	],
+	"initializeCommand": "test -f ${HOME}/.gitconfig || touch ${HOME}/.gitconfig && test -d ${HOME}/.claude || mkdir -p ${HOME}/.claude",
+	"forwardPorts": [
+		3031,
+		3032
+	],
+	"remoteUser": "coder",
+	"runArgs": [
+		"--name",
+		"wmf_scraper"
+	]
+}
