@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import About from "./components/About";
 import AddCompetition from "./components/AddCompetition";
 import CompetitionByCountry from "./components/CompetitionByCountry";
 import CompetitionOveralls from "./components/CompetitionOveralls";
@@ -9,6 +8,7 @@ import LoadCompetition from "./components/LoadCompetition";
 import Login from "./components/Login";
 import Navbar from "./components/NavBar";
 import RFSPenalties from "./components/RFSPenalties";
+import StatusBar from "./components/StatusBar";
 import TasksResultsCompetitor from "./components/TaskResultsCompetitor";
 import { User, fetchCurrentUser, logout, setUnauthenticatedHandler } from "./config/api";
 
@@ -39,7 +39,12 @@ function App() {
   }
 
   if (!user) {
-    return <Login onLogin={setUser} />;
+    return (
+      <React.Fragment>
+        <Login onLogin={setUser} />
+        <StatusBar />
+      </React.Fragment>
+    );
   }
 
   return (
@@ -53,12 +58,12 @@ function App() {
           </>
         )}
         <Route path={"/overalls"} element={<CompetitionOveralls />} />
-        <Route path={"/about"} element={<About />} />
         <Route path={"/overalls_country"} element={<CompetitionByCountry />} />
         <Route path={"/results_competitor"} element={<TasksResultsCompetitor />} />
         <Route path={"/results_path"} element={<CompetitorPath />} />
         <Route path={"/rfs_penalties"} element={<RFSPenalties />} />
       </Routes>
+      <StatusBar />
     </React.Fragment>
   );
 }

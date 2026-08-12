@@ -1,0 +1,25 @@
+:root {
+  --status-bar-height: 1.75rem;
+}
+
+/* Keep the last row of any page clear of the fixed status bar. */
+body {
+  padding-bottom: var(--status-bar-height);
+}
+
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  height: var(--status-bar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useVersion } from "../hooks/useVersion";
 
 interface IProps {
   onLogout: () => void;
@@ -9,7 +8,6 @@ interface IProps {
 
 let Navbar: React.FC<IProps> = ({ onLogout, userRole }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const version = useVersion();
 
   const toggleNavbar = () => {
     setIsCollapsed(!isCollapsed);
@@ -77,18 +75,10 @@ let Navbar: React.FC<IProps> = ({ onLogout, userRole }) => {
                   RFS Penalties
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link to={"/about"} className="nav-link" onClick={() => setIsCollapsed(true)}>
-                  About
-                </Link>
-              </li>
             </ul>
             <div className="navbar-nav ms-auto">
               <span className="navbar-text me-3">
                 Role: <span className="badge bg-secondary">{userRole}</span>
-              </span>
-              <span className="navbar-text me-3" title="Application version">
-                <span className="badge bg-dark border border-secondary">v{version ?? "…"}</span>
               </span>
               <button
                 className="btn btn-outline-light btn-sm"

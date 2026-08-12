@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { login, User } from "../config/api";
-import { useVersion } from "../hooks/useVersion";
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -11,7 +10,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const version = useVersion();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +77,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
-            </div>
-            <div className="card-footer text-center text-muted small">
-              WMF Scraper v{version ?? "…"}
             </div>
           </div>
         </div>

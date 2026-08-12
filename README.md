@@ -25,9 +25,10 @@ frontend, from a **single** process and a **single** Fly.io app.
 │   └── tests/
 ├── frontend/               React 18 + TypeScript, built with Vite
 │   └── src/
-│       ├── components/     one component per screen
+│       ├── components/     one component per screen, plus the status bar
 │       ├── config/api.ts   the shared axios client
-│       └── hooks/          useVersion
+│       ├── hooks/          useVersion
+│       └── index.css       the status bar; everything else is Bootstrap
 ├── scripts/sync_version.py keeps package.json in step with pyproject.toml
 ├── seed/                   request bodies for the bulk endpoints
 ├── .github/workflows/      release.yml, the only workflow: deploys a v* tag
@@ -119,8 +120,8 @@ follows from it:
 * `frontend/package.json` is kept in step by [`scripts/sync_version.py`](scripts/sync_version.py).
 * The running app reports it at `/api/version`, read from the installed package
   metadata rather than from a hard-coded string or an environment variable.
-* The UI shows it on the login card, in the navbar and on the About page — all
-  three from `/api/version`, so what you read is what the server is running.
+* The UI shows it in the status bar along the bottom of every screen, read from
+  `/api/version`, so what you see is what the server is actually running.
 
 Never edit the version by hand:
 
