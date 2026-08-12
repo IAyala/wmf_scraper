@@ -17,7 +17,7 @@ Live at <https://wmf-scraper.fly.dev>.
 
 ## Releasing
 
-The normal path is a tag push; CI does the rest.
+The normal path is a tag push.
 
 ```bash
 make bump-patch                          # or bump-minor / bump-major
@@ -28,9 +28,9 @@ git push origin "v$(make -s version)"    # this triggers the deploy
 ```
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) then verifies
-the tag matches the committed version, runs the linters, type checkers and
-tests, builds the frontend, deploys, polls `/api/version` until it reports the
-new version, and opens a GitHub release.
+the tag matches the committed version, deploys, polls `/api/version` until it
+reports the new version, and opens a GitHub release. It is the only workflow in
+the repository and runs no tests, so run `make check` before you tag.
 
 It needs one repository secret:
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, column, select
 
 from wmf_scraper.actions.competition import the_competition
-from wmf_scraper.actions.competitor import preprocess_competitors
+from wmf_scraper.actions.competitor import competitors_in_competition, preprocess_competitors
 from wmf_scraper.actions.utilities import try_endpoint
 from wmf_scraper.database import get_db
 from wmf_scraper.models.competitor import CompetitorModel, CountryModel
@@ -18,8 +18,8 @@ router = APIRouter()
 )
 @try_endpoint
 async def get_competitors(competition_id: int, session: Session = Depends(get_db)) -> list[CompetitorModel]:
-    competition_to_parse = await the_competition(competition_id=competition_id, session=session)
-    return get_competitor_data(competition_to_parse)
+    competition = await the_competition(competition_id=competition_id, session=session)
+    return competitors_in_competition(competition, session)
 
 
 @router.get(
@@ -30,13 +30,8 @@ async def get_competitors(competition_id: int, session: Session = Depends(get_db
 async def get_competitors_in_competition_by_country(
     competition_id: int, country_name: str, session: Session = Depends(get_db)
 ) -> list[CompetitorModel]:
-    competition_to_parse = await the_competition(competition_id=competition_id, session=session)
-    return list(
-        filter(
-            lambda x: x.competitor_country == country_name,
-            get_competitor_data(competition_to_parse),
-        )
-    )
+    competition = await the_competition(competition_id=competition_id, session=session)
+    return [c for c in competitors_in_competition(competition, session) if c.competitor_country == country_name]
 
 
 @router.post(
@@ -60,9 +55,9 @@ async def add_competitors_in_competition(
 )
 @try_endpoint
 async def get_countries_in_competition(competition_id: int, session: Session = Depends(get_db)) -> list[CountryModel]:
-    competition_to_parse = await the_competition(competition_id=competition_id, session=session)
-    competitors = get_competitor_data(competition_to_parse)
-    return [CountryModel(competitor_country=x) for x in list(set([x.competitor_country for x in competitors]))]
+    competition = await the_competition(competition_id=competition_id, session=session)
+    competitors = competitors_in_competition(competition, session)
+    return [CountryModel(competitor_country=c) for c in sorted({c.competitor_country for c in competitors})]
 
 
 @router.get(

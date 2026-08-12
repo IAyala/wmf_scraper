@@ -30,7 +30,7 @@ frontend, from a **single** process and a **single** Fly.io app.
 │       └── hooks/          useVersion
 ├── scripts/sync_version.py keeps package.json in step with pyproject.toml
 ├── seed/                   request bodies for the bulk endpoints
-├── .github/workflows/      ci.yml on push, release.yml on a v* tag
+├── .github/workflows/      release.yml, the only workflow: deploys a v* tag
 ├── pyproject.toml          Python project and version, managed with uv
 ├── Dockerfile              builds frontend + backend into one image
 └── fly.toml                the single `wmf-scraper` app
@@ -146,14 +146,14 @@ git push origin v0.0.2         # this is what deploys
 that actually carries that version.
 
 Pushing the tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml),
-which:
+the only workflow in the repository. It:
 
 1. checks the tag matches the version in `pyproject.toml` and `package.json`,
-2. runs ruff, mypy, `tsc` and the test suite,
-3. builds the frontend,
-4. deploys to Fly,
-5. polls `/api/version` until it reports the new version,
-6. opens a GitHub release with generated notes.
+2. deploys to Fly, which builds the image from the `Dockerfile`,
+3. polls `/api/version` until it reports the new version,
+4. opens a GitHub release with generated notes.
+
+It deliberately runs no tests — **run `make check` yourself before tagging.**
 
 It needs exactly one repository secret:
 
@@ -164,9 +164,6 @@ It needs exactly one repository secret:
 Add it under *Settings → Secrets and variables → Actions → New repository secret*.
 Nothing else is needed: the application secrets (`SESSION_SECRET`, the
 credentials, `API_KEY`) live on Fly and are never read by CI.
-
-Every push and pull request also runs [`ci.yml`](.github/workflows/ci.yml),
-which does the same checks plus a Docker build, without deploying.
 
 ## Deployment
 
