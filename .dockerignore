@@ -14,6 +14,5 @@ backend/tests
 .env.*
 .op.env
 *.db
-CHANGELOG.md
 DEPLOY.md
 Makefile
