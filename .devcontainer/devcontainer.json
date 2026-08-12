@@ -10,10 +10,18 @@
 	},
 	"customizations": {
 		"vscode": {
-			"settings": {},
+			"settings": {
+				"git.openRepositoryInParentFolders": "always",
+				"scm.defaultViewMode": "tree",
+				"gitlens.currentLine.enabled": true,
+				"gitlens.codeLens.enabled": false
+			},
 			"extensions": [
 				"anthropic.claude-code",
 				"nimda.deepdark-material",
+				"eamodio.gitlens",
+				"mhutchie.git-graph",
+				"github.vscode-pull-request-github",
 				"ms-vscode.cmake-tools",
 				"ms-vscode.makefile-tools",
 				"esbenp.prettier-vscode",
