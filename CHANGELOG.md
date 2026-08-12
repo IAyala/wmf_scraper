@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]
 ------------
 
+[3.0.1] - 2026-08-12
+------------
+
+### Fixed
+- Competitions whose competitor list has not been published yet can now be
+  loaded. WatchMeFly only publishes the standings table and the pilot list once
+  an event has official results, so an in-progress event such as the 2026
+  French Nationals exposed task results with no roster to match them against.
+  The roster is now rebuilt from the task results in that case.
+- A result whose competitor cannot be resolved is skipped and reported in
+  `LoadCompetitionResponse.result_no_competitor` instead of being stored
+  against a `-1` placeholder id. Because `(task_id, competitor_id)` is the
+  primary key, two such rows in one task raised a UNIQUE constraint error,
+  and a single one was silently attributed to a competitor that does not exist.
+
+### Changed
+- Task pages are fetched with a thread pool instead of a process pool. The work
+  is HTTP-bound, and forking a pool out of the async server process is fragile
+  now that Python 3.14 defaults to the forkserver start method.
+
 [3.0.0] - 2026-08-12
 ------------
 
@@ -140,7 +160,8 @@ Minor bugs fixed. Tests added. Coverage 100%. Ready to go
 ------------
 First version, with the skeleton of the project ready to go
 
-[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v3.0.0...master
+[Unreleased]: https://github.com/IAyala/wmf_scraper/compare/v3.0.1...master
+[3.0.1]: https://github.com/IAyala/wmf_scraper/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/IAyala/wmf_scraper/compare/v2.1.3...v3.0.0
 [2.1.3]: https://github.com/IAyala/wmf_scraper/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/IAyala/wmf_scraper/compare/v2.1.1...v2.1.2
