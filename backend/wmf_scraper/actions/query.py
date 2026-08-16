@@ -212,29 +212,38 @@ async def query_rfs_penalties_in_competition(competition_id: int, session: Sessi
     ]
 
 
+def task_orders_in_competition(competition_id: int, session: Session) -> list[int]:
+    """The task numbers actually published for a competition, in order.
+
+    WatchMeFly numbers tasks as they are flown, and a cancelled task leaves a
+    hole: the 2026 US Nationals go straight from Task 16 to Task 18. Walking
+    1..count(tasks) would therefore stop one task short of the end and report a
+    path that disagrees with the final overalls.
+    """
+    return list(
+        session.exec(
+            select(TaskModel.task_order)
+            .where(TaskModel.competition_id == competition_id)
+            .distinct()
+            .order_by(col(TaskModel.task_order))
+        ).all()
+    )
+
+
 async def query_positions_by_competitor_in_competition(
     competition_id: int, competitor_name: str, session: Session
 ) -> CompetitorOverallByTask:
-    num_tasks = session.exec(
-        select(
-            func.count(TaskModel.task_id).label("number_tasks")  # type:ignore
-        )
-        .join(
-            CompetitionModel,
-            TaskModel.competition_id == CompetitionModel.competition_id,
-        )
-        .where(CompetitionModel.competition_id == competition_id)
-    ).first()
+    task_orders = task_orders_in_competition(competition_id=competition_id, session=session)
     competitor = session.exec(
         select(CompetitorModel).where(CompetitorModel.competitor_name == competitor_name)
     ).one_or_none()
-    if num_tasks and num_tasks > 0 and competitor:
-        result = CompetitorOverallByTask(**competitor.dict())
-        for i in range(1, num_tasks + 1):
-            results_up_to_task_i = await query_overall_results_for_competition(
-                competition_id=competition_id, session=session, up_to_task=i
+    if task_orders and competitor:
+        result = CompetitorOverallByTask(**competitor.dict(), task_orders=task_orders)
+        for task_order in task_orders:
+            results_up_to_task = await query_overall_results_for_competition(
+                competition_id=competition_id, session=session, up_to_task=task_order
             )
-            my_competitor_position = next(filter(lambda x: x.competitor_name == competitor_name, results_up_to_task_i))
+            my_competitor_position = next(filter(lambda x: x.competitor_name == competitor_name, results_up_to_task))
             result.competitor_positions.append(my_competitor_position.position)
         return result
     raise ValueError(

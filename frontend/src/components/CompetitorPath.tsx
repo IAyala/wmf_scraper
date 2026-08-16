@@ -126,9 +126,11 @@ export default function CompetitorPath() {
           const { data } = await api.get(`/query/position_path_in_competition?competition_id=${selectedCompetition.value}&competitor_name=${selectedCompetitor.value}`);
           the_values[selectedCompetitor.label] = data.competitor_positions;
           if (!("x" in the_values)) {
-            the_values["x"] = Array.from({
-              length: data.competitor_positions.length,
-            }).map((_, i) => `Task ${i + 1}`);
+            // Label with the task numbers the backend actually found: a
+            // cancelled task leaves a hole, so they are not always 1..N.
+            the_values["x"] = data.task_orders.map(
+              (task_order: number) => `Task ${task_order}`
+            );
           }
         }
 

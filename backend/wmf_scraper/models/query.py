@@ -42,6 +42,9 @@ class CompetitionOverallWithPosition(CompetitionOverall):
 class CompetitorOverallByTask(SQLModel):
     competitor_name: str = Field(nullable=False)
     competitor_country: str = Field(nullable=False)
+    # Parallel to competitor_positions: the real task numbers, which skip any
+    # task that was cancelled and never published.
+    task_orders: list[int] = Field(default=[])
     competitor_positions: list[int] = Field(default=[])
 
 
