@@ -5,6 +5,7 @@ from lxml.html import HtmlElement
 from wmf_scraper.actions.utilities import optional_to_int_fallback_0
 from wmf_scraper.models.competition import CompetitionModel
 from wmf_scraper.models.task import TaskModel
+from wmf_scraper.parsers.flight import Flight, get_flights_data
 from wmf_scraper.parsers.utilities import URL_PREFIX, html_from_url, results_url
 
 
@@ -25,9 +26,20 @@ def _task_title(task_info: HtmlElement) -> str | None:
     return first_text(task_info.findall(".//h7[@class='mb-0']"))
 
 
+def task_with_flight(task: TaskModel, flights: dict[str, Flight]) -> TaskModel:
+    """Stamp the task with its flight, when the flights view lists it."""
+    flight = flights.get(task.task_url)
+    if flight is not None:
+        task.flight_number = flight.flight_number
+        task.flight_date = flight.flight_date
+        task.flight_period = flight.flight_period
+    return task
+
+
 def get_tasks_data(the_competition: CompetitionModel) -> list[TaskModel]:
     is_last: bool = False
     result = []
+    flights = get_flights_data(the_competition)
     page = html_from_url(results_url(the_competition.competition_url))
     for task_info in page.findall(".//a[@class='text-black']"):
         title = _task_title(task_info)
@@ -41,12 +53,15 @@ def get_tasks_data(the_competition: CompetitionModel) -> list[TaskModel]:
         task_order, task_name = task_order_and_name_from_string(title)
         task_status = (first_text(task_info.findall(r".//div[@class='ms-auto']/h7")) or "").strip()
         result.append(
-            TaskModel(
-                task_url=f"{URL_PREFIX}/{task_url}",
-                task_name=task_name,
-                task_status=task_status,
-                task_order=task_order,
-                competition_id=optional_to_int_fallback_0(the_competition.competition_id),
+            task_with_flight(
+                TaskModel(
+                    task_url=f"{URL_PREFIX}/{task_url}",
+                    task_name=task_name,
+                    task_status=task_status,
+                    task_order=task_order,
+                    competition_id=optional_to_int_fallback_0(the_competition.competition_id),
+                ),
+                flights,
             )
         )
         if is_last:

@@ -6,10 +6,16 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Listen on every interface, not just loopback. Inside a devcontainer the
+    // default ("localhost") resolves to ::1 only, so the port forwarding, which
+    // connects over IPv4, finds nothing and the browser shows a blank page.
+    host: true,
     port: 3000,
     proxy: {
       "/api": {
-        target: process.env.VITE_API_TARGET ?? "http://localhost:8000",
+        // 127.0.0.1 rather than localhost: uvicorn binds IPv4, and resolving
+        // localhost to ::1 first would make the proxy miss it.
+        target: process.env.VITE_API_TARGET ?? "http://127.0.0.1:8000",
         changeOrigin: false,
       },
     },

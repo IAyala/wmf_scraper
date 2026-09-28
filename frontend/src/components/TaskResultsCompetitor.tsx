@@ -5,7 +5,7 @@ import { api } from "../config/api";
 import DataTable, { IColumn } from "./DataTable";
 import FilterCard, { FilterField } from "./FilterCard";
 import PageHeader from "./PageHeader";
-import { loadedOn } from "./tableHelpers";
+import { IFlight, flightLabel, loadedOn } from "./tableHelpers";
 
 interface IOptionCompetition {
   value: string;
@@ -20,6 +20,11 @@ interface IOptionCountry {
 
 interface IOptionCompetitor {
   value: string;
+  label: string;
+}
+
+interface IOptionFlight {
+  value: number | "";
   label: string;
 }
 
@@ -49,6 +54,9 @@ interface IResult {
   task_name: string;
   task_status: string;
   notes: string;
+  flight_number: number | null;
+  flight_date: string | null;
+  flight_period: string | null;
 }
 
 export default function TasksResultsCompetitor() {
@@ -61,6 +69,8 @@ export default function TasksResultsCompetitor() {
     useState<SingleValue<IOptionCompetition>>();
   const [selectedCompetitor, setSelectedCompetitor] =
     useState<SingleValue<IOptionCompetitor>>();
+  const [optionsFlight, setOptionsFlight] = useState<IOptionFlight[]>();
+  const [selectedFlight, setSelectedFlight] = useState<SingleValue<IOptionFlight>>();
   const [result, setResult] = useState<IResult[]>([]);
 
   useEffect(() => {
@@ -103,8 +113,21 @@ export default function TasksResultsCompetitor() {
         setOptionsCountry(results);
       }
     }
+    async function fetchFlights(selected: SingleValue<IOptionCompetition>) {
+      if (selected) {
+        const { data } = await api.get(`/query/flights_in_competition?competition_id=${selected.value}`);
+        // "All flights" first, so the screen keeps showing the whole
+        // competition until a flight is picked on purpose.
+        setOptionsFlight([
+          { value: "", label: "All flights" },
+          ...data.map((flight: IFlight) => ({ value: flight.flight_number, label: flightLabel(flight) })),
+        ]);
+      }
+    }
     setSelectedCompetition(selected);
+    setSelectedFlight(null);
     fetchCountries(selected);
+    fetchFlights(selected);
   };
 
   const handleChangeCountry = (selected: SingleValue<IOptionCountry>) => {
@@ -125,34 +148,33 @@ export default function TasksResultsCompetitor() {
     fetchCompetitors(selected);
   };
 
-  const handleChangeCompetitor = (selected: SingleValue<IOptionCompetitor>) => {
-    async function fetchResults(selected: SingleValue<IOptionCompetitor>) {
-      if (selected && selectedCompetition) {
-        const { data } = await api.get(`/query/results_competitor_in_competition?competition_id=${selectedCompetition.value}&competitor_name=${selected.value}`);
-        const results: IResult[] = [];
-        data.forEach((value: IResult) => {
-          results.push({
-            result: value.result,
-            gross_score: value.gross_score,
-            task_penalty: value.task_penalty,
-            competition_penalty: value.competition_penalty,
-            net_score: value.net_score,
-            task_order: value.task_order,
-            task_name: value.task_name,
-            task_status: value.task_status,
-            notes: value.notes,
-          });
-        });
-        setResult(results);
-      }
+  const fetchResults = async (
+    competitor: SingleValue<IOptionCompetitor>,
+    flight: SingleValue<IOptionFlight>
+  ) => {
+    if (competitor && selectedCompetition) {
+      const flightFilter = flight?.value ? `&flight_number=${flight.value}` : "";
+      const { data } = await api.get(
+        `/query/results_competitor_in_competition?competition_id=${selectedCompetition.value}&competitor_name=${competitor.value}${flightFilter}`
+      );
+      setResult(data);
     }
+  };
+
+  const handleChangeCompetitor = (selected: SingleValue<IOptionCompetitor>) => {
     setSelectedCompetitor(selected);
-    fetchResults(selected);
+    fetchResults(selected, selectedFlight ?? null);
+  };
+
+  const handleChangeFlight = (selected: SingleValue<IOptionFlight>) => {
+    setSelectedFlight(selected);
+    fetchResults(selectedCompetitor ?? null, selected);
   };
 
   const columns: IColumn<IResult>[] = [
     { header: "Task", kind: "num", primary: true, render: (r) => <span className="rank-badge">{r.task_order}</span> },
     { header: "Name", kind: "text", primary: true, render: (r) => <strong>{r.task_name}</strong> },
+    { header: "Flight", kind: "text", render: (r) => flightLabel(r) },
     { header: "Status", kind: "text", render: (r) => <span className="badge bg-secondary">{r.task_status}</span> },
     { header: "Result", kind: "num", render: (r) => r.result },
     { header: "Gross", kind: "num", render: (r) => r.gross_score.toLocaleString() },
@@ -162,7 +184,11 @@ export default function TasksResultsCompetitor() {
     { header: "Notes", kind: "notes", render: (r) => r.notes },
   ];
 
-  const subtitle = [loadedOn(selectedCompetition?.load_time), selectedCompetitor?.label]
+  const subtitle = [
+    loadedOn(selectedCompetition?.load_time),
+    selectedCompetitor?.label,
+    selectedFlight?.value ? selectedFlight.label : undefined,
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -171,14 +197,14 @@ export default function TasksResultsCompetitor() {
       <PageHeader title="Results by Competitor" subtitle={subtitle || undefined} />
 
       <FilterCard>
-        <FilterField label="Competition" className="col-12 col-lg-4">
+        <FilterField label="Competition" className="col-12 col-lg-3">
           <AppSelect
             options={optionsCompetition}
             onChange={handleChangeCompetition}
             placeholder="Select a competition..."
           />
         </FilterField>
-        <FilterField label="Country" className="col-12 col-md-6 col-lg-4">
+        <FilterField label="Country" className="col-12 col-md-6 col-lg-3">
           <AppSelect
             options={optionsCountry}
             onChange={handleChangeCountry}
@@ -186,12 +212,21 @@ export default function TasksResultsCompetitor() {
             placeholder={optionsCountry ? "Select a country..." : "Pick a competition first"}
           />
         </FilterField>
-        <FilterField label="Competitor" className="col-12 col-md-6 col-lg-4">
+        <FilterField label="Competitor" className="col-12 col-md-6 col-lg-3">
           <AppSelect
             options={optionsCompetitor}
             onChange={handleChangeCompetitor}
             isDisabled={!optionsCompetitor}
             placeholder={optionsCompetitor ? "Select a competitor..." : "Pick a country first"}
+          />
+        </FilterField>
+        <FilterField label="Flight" className="col-12 col-md-6 col-lg-3">
+          <AppSelect
+            value={selectedFlight}
+            options={optionsFlight}
+            onChange={handleChangeFlight}
+            isDisabled={!optionsFlight || optionsFlight.length <= 1}
+            placeholder={optionsFlight?.length ? "All flights" : "Pick a competition first"}
           />
         </FilterField>
       </FilterCard>
@@ -203,7 +238,9 @@ export default function TasksResultsCompetitor() {
         rowClassName={(r) => (r.task_penalty > 0 || r.competition_penalty > 0 ? "table-danger" : undefined)}
         empty={
           selectedCompetitor
-            ? "No results for this competitor."
+            ? selectedFlight?.value
+              ? "This competitor flew no task in that flight."
+              : "No results for this competitor."
             : "Choose a competition, a country and a competitor."
         }
       />

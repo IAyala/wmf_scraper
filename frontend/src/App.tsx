@@ -5,7 +5,9 @@ import CompetitionByCountry from "./components/CompetitionByCountry";
 import CompetitionOveralls from "./components/CompetitionOveralls";
 import CompetitorPath from "./components/CompetitorPath";
 import EditCompetitions from "./components/EditCompetitions";
+import FlightResults from "./components/FlightResults";
 import LoadCompetition from "./components/LoadCompetition";
+import ResultsByTask from "./components/ResultsByTask";
 import Login from "./components/Login";
 import Navbar from "./components/NavBar";
 import RFSPenalties from "./components/RFSPenalties";
@@ -62,6 +64,8 @@ function App() {
         <Route path={"/overalls"} element={<CompetitionOveralls />} />
         <Route path={"/overalls_country"} element={<CompetitionByCountry />} />
         <Route path={"/results_competitor"} element={<TasksResultsCompetitor />} />
+        <Route path={"/results_flight"} element={<FlightResults />} />
+        <Route path={"/results_task"} element={<ResultsByTask />} />
         <Route path={"/results_path"} element={<CompetitorPath />} />
         <Route path={"/rfs_penalties"} element={<RFSPenalties />} />
         {/* "/" and anything unrecognised land on the standings. */}

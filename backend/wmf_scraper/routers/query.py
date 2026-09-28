@@ -3,10 +3,14 @@ from sqlmodel import Session
 
 from wmf_scraper.actions.query import (
     query_country_results_for_competition,
+    query_flight_results_for_competition,
+    query_flights_in_competition,
     query_overall_results_for_competition,
     query_positions_by_competitor_in_competition,
     query_result_for_competitor_in_competition,
     query_rfs_penalties_in_competition,
+    query_task_results_in_competition,
+    query_tasks_in_competition,
 )
 from wmf_scraper.actions.utilities import try_endpoint
 from wmf_scraper.database import get_db
@@ -15,7 +19,10 @@ from wmf_scraper.models.query import (
     CompetitorOverallByTask,
     CompetitorResults,
     CountryResultsWithPosition,
+    FlightInCompetition,
     RFSPenaltiesByCompetition,
+    TaskInCompetition,
+    TaskResultWithPosition,
 )
 
 router = APIRouter()
@@ -27,10 +34,17 @@ router = APIRouter()
 )
 @try_endpoint
 async def results_competitor_in_competition(
-    competition_id: int, competitor_name: str, session: Session = Depends(get_db)
+    competition_id: int,
+    competitor_name: str,
+    flight_number: int | None = None,
+    session: Session = Depends(get_db),
 ) -> list[CompetitorResults]:
+    """Every result of a competitor, or only those of one flight."""
     return await query_result_for_competitor_in_competition(
-        competition_id=competition_id, competitor_name=competitor_name, session=session
+        competition_id=competition_id,
+        competitor_name=competitor_name,
+        session=session,
+        flight_number=flight_number,
     )
 
 
@@ -66,6 +80,50 @@ async def position_path_in_competition(
 ) -> CompetitorOverallByTask:
     return await query_positions_by_competitor_in_competition(
         competition_id=competition_id, competitor_name=competitor_name, session=session
+    )
+
+
+@router.get(
+    "/tasks_in_competition",
+    summary="Tasks of a competition, as they are stored",
+)
+@try_endpoint
+async def tasks_in_competition(competition_id: int, session: Session = Depends(get_db)) -> list[TaskInCompetition]:
+    return await query_tasks_in_competition(competition_id=competition_id, session=session)
+
+
+@router.get(
+    "/task_results_competition",
+    summary="Classification of a single task",
+)
+@try_endpoint
+async def task_results_competition(
+    competition_id: int, task_order: int, session: Session = Depends(get_db)
+) -> list[TaskResultWithPosition]:
+    return await query_task_results_in_competition(
+        competition_id=competition_id, task_order=task_order, session=session
+    )
+
+
+@router.get(
+    "/flights_in_competition",
+    summary="Flights of a competition, with their date and their tasks",
+)
+@try_endpoint
+async def flights_in_competition(competition_id: int, session: Session = Depends(get_db)) -> list[FlightInCompetition]:
+    return await query_flights_in_competition(competition_id=competition_id, session=session)
+
+
+@router.get(
+    "/flight_results_competition",
+    summary="Classification of a single flight",
+)
+@try_endpoint
+async def flight_results_competition(
+    competition_id: int, flight_number: int, session: Session = Depends(get_db)
+) -> list[CompetitionOverallWithPosition]:
+    return await query_flight_results_for_competition(
+        competition_id=competition_id, flight_number=flight_number, session=session
     )
 
 

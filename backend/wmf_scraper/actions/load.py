@@ -25,7 +25,15 @@ from wmf_scraper.parsers.task_results import (
 def fingerprint_fields(
     task: TaskModel, result: TaskResultModel | None, competitor: CompetitorModel | None
 ) -> list[str]:
-    fields = [str(task.task_order), task.task_name, task.task_status, task.task_url]
+    fields = [
+        str(task.task_order),
+        task.task_name,
+        task.task_status,
+        task.task_url,
+        str(task.flight_number),
+        str(task.flight_date),
+        str(task.flight_period),
+    ]
     # A task with no result yet still counts: it disappearing is a change.
     if result is not None and competitor is not None:
         fields += [

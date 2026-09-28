@@ -15,6 +15,8 @@ const VIEW_LINKS: ILink[] = [
   { to: "/overalls", label: "Overalls" },
   { to: "/overalls_country", label: "By Country" },
   { to: "/results_competitor", label: "By Competitor" },
+  { to: "/results_flight", label: "By Flight" },
+  { to: "/results_task", label: "By Task" },
   { to: "/results_path", label: "Results Path" },
   { to: "/rfs_penalties", label: "RFS Penalties" },
 ];

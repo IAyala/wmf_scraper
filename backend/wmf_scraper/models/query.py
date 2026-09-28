@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlmodel import Field, SQLModel
 
 
@@ -14,6 +16,9 @@ class CompetitorResults(SQLModel):
     task_order: int = Field(nullable=False)
     task_name: str = Field(nullable=False)
     task_status: str = Field(nullable=False)
+    flight_number: int | None = Field(default=None)
+    flight_date: date | None = Field(default=None)
+    flight_period: str | None = Field(default=None)
 
 
 class CountryResults(SQLModel):
@@ -46,6 +51,41 @@ class CompetitorOverallByTask(SQLModel):
     # task that was cancelled and never published.
     task_orders: list[int] = Field(default=[])
     competitor_positions: list[int] = Field(default=[])
+
+
+class TaskInCompetition(SQLModel):
+    """A task as it is stored, for picking one to look at."""
+
+    task_order: int = Field(nullable=False)
+    task_name: str = Field(nullable=False)
+    task_status: str = Field(nullable=False)
+    flight_number: int | None = Field(default=None)
+    flight_date: date | None = Field(default=None)
+    flight_period: str | None = Field(default=None)
+
+
+class TaskResult(SQLModel):
+    competitor_name: str = Field(nullable=False)
+    competitor_country: str = Field(nullable=False)
+    result: str = Field(nullable=False)
+    gross_score: int = Field(nullable=False)
+    task_penalty: int = Field(nullable=False)
+    competition_penalty: int = Field(nullable=False)
+    net_score: int = Field(nullable=False)
+    notes: str = Field()
+
+
+class TaskResultWithPosition(TaskResult):
+    position: int = Field(nullable=False)
+
+
+class FlightInCompetition(SQLModel):
+    """One flight of a competition, with the tasks that were set in it."""
+
+    flight_number: int = Field(nullable=False)
+    flight_date: date | None = Field(default=None)
+    flight_period: str | None = Field(default=None)
+    task_orders: list[int] = Field(default=[])
 
 
 class RFSPenaltiesByCompetition(SQLModel):

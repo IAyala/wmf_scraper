@@ -19,7 +19,7 @@ dev:  ## Run backend and frontend dev servers together
 	@trap 'kill 0' EXIT; $(MAKE) dev-backend & $(MAKE) dev-frontend & wait
 
 dev-backend:  ## Run the API on :8000 with reload
-	ENVIRONMENT=development uv run uvicorn wmf_scraper.main:app --reload --port 8000
+	ENVIRONMENT=development uv run uvicorn wmf_scraper.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-frontend:  ## Run the Vite dev server on :3000, proxying /api to :8000
 	$(NPM) run dev
