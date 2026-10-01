@@ -135,6 +135,44 @@ body {
   box-shadow: inset 0 0 0 9999px var(--wmf-bronze);
 }
 
+/* Spain wins the row even on the podium. Declared after the medals so it
+   overrides them, and reading --bs-table-bg so the blue is exactly the one
+   Bootstrap gives .table-info, the same blue RFS Penalties shows. The medal is
+   not lost: .rank-badge below still colours the position itself. */
+.data-table tr.table-info > * {
+  box-shadow: inset 0 0 0 9999px var(--bs-table-bg, #cff4fc);
+}
+
+/* A country represented by a single pilot. Its "average" is just that pilot's
+   score, so it cannot be compared with the rest: the row is hatched and
+   accented rather than hidden, because the pilot is still a real result.
+   Hatching, not a flat colour: the podium tint is an inset box-shadow painted
+   over the background, so on a hatched podium row the left bar carries it. */
+.data-table tr.one-competitor > * {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    rgba(108, 117, 125, 0.13) 6px 12px
+  );
+}
+
+.data-table tr.one-competitor > *:first-child {
+  border-left: 3px solid var(--wmf-muted);
+}
+
+/* Legend swatch, so the hatch is explained rather than guessed at. */
+.legend-hatch {
+  display: inline-block;
+  width: 1.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--wmf-border);
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    rgba(108, 117, 125, 0.35) 4px 8px
+  );
+}
+
 .rank-badge {
   display: inline-flex;
   align-items: center;
@@ -210,6 +248,28 @@ tr.rank-3 .rank-badge {
   }
   .data-table tbody tr.rank-3 {
     background-color: var(--wmf-bronze);
+  }
+
+  /* Same precedence on the phone card as on the desktop row. */
+  .data-table tbody tr.table-info {
+    background-color: var(--bs-table-bg, #cff4fc);
+  }
+
+  .data-table tbody tr.one-competitor {
+    border-left: 3px solid var(--wmf-muted);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 6px,
+      rgba(108, 117, 125, 0.13) 6px 12px
+    );
+  }
+
+  /* The card carries the hatch and the accent, so the cells must not repeat
+     them: two copies of the same pattern at different offsets look like dirt. */
+  .data-table tr.one-competitor > *,
+  .data-table tr.one-competitor > *:first-child {
+    background-image: none;
+    border-left: 0;
   }
 
   .data-table td {

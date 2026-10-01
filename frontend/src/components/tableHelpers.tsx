@@ -4,15 +4,21 @@
 export const loadedOn = (loadTime?: Date): string | undefined =>
   loadTime ? `Loaded ${loadTime.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}` : undefined;
 
+/** Join the row classes that apply, or nothing when none do. */
+export const rowClasses = (...classes: (string | undefined)[]): string | undefined =>
+  classes.filter(Boolean).join(" ") || undefined;
+
 /**
- * Podium tint for the top three, and the existing highlight for Spanish
- * competitors. The podium wins when both apply.
+ * Podium tint for the top three, and the blue highlight for Spanish
+ * competitors, the same blue RFS Penalties uses.
+ *
+ * Both classes are returned when both apply. The blue always wins the row,
+ * because spotting the Spanish pilots is the point of the colour, while the
+ * medal survives on the position badge: a Spanish winner gets a blue row with
+ * a gold badge.
  */
-export const rankClass = (position: number, country?: string): string | undefined => {
-  if (position <= 3) return `rank-${position}`;
-  if (country === "Spain") return "table-warning";
-  return undefined;
-};
+export const rankClass = (position: number, country?: string): string | undefined =>
+  rowClasses(position <= 3 ? `rank-${position}` : undefined, country === "Spain" ? "table-info" : undefined);
 
 /** The flight stamped on a task. Null throughout when it was never scraped. */
 export interface IFlightStamp {

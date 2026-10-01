@@ -5,7 +5,7 @@ import { api } from "../config/api";
 import DataTable, { IColumn } from "./DataTable";
 import FilterCard, { FilterField } from "./FilterCard";
 import PageHeader from "./PageHeader";
-import { loadedOn, rankClass } from "./tableHelpers";
+import { loadedOn, rankClass, rowClasses } from "./tableHelpers";
 
 interface IOption {
   value: string;
@@ -76,7 +76,18 @@ export default function CompetitionByCountry() {
   const columns: IColumn<IResult>[] = [
     { header: "Pos", kind: "num", primary: true, render: (r) => <span className="rank-badge">{r.position}</span> },
     { header: "Country", kind: "text", primary: true, render: (r) => <strong>{r.competitor_country}</strong> },
-    { header: "Competitors", kind: "num", render: (r) => r.number_competitors },
+    {
+      header: "Competitors",
+      kind: "num",
+      // Spelled out as well as hatched: on a podium row the hatching is painted
+      // over by the medal tint, and the count is always readable.
+      render: (r) =>
+        r.number_competitors === 1 ? (
+          <span title="Only one pilot: the average is that pilot's score">1 *</span>
+        ) : (
+          r.number_competitors
+        ),
+    },
     { header: "Average Score", kind: "num", primary: true, render: (r) => <strong>{r.average_score.toLocaleString()}</strong> },
   ];
 
@@ -90,11 +101,23 @@ export default function CompetitionByCountry() {
         </FilterField>
       </FilterCard>
 
+      {result.length > 0 && (
+        <div className="d-flex flex-wrap gap-3 mb-2 small text-muted">
+          <span><span className="badge bg-info text-dark">&nbsp;</span> Spain</span>
+          <span><span className="legend-hatch">&nbsp;</span> one pilot only: the average is that pilot's score</span>
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         rows={result}
         rowKey={(r) => r.position}
-        rowClassName={(r) => rankClass(r.position, r.competitor_country)}
+        rowClassName={(r) =>
+          rowClasses(
+            rankClass(r.position, r.competitor_country),
+            r.number_competitors === 1 ? "one-competitor" : undefined
+          )
+        }
         empty={selected ? "No results for this competition." : "Select a competition to see the country ranking."}
       />
     </div>
